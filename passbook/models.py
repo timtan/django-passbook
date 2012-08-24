@@ -26,7 +26,7 @@ class Pass(models.Model):
     description = models.CharField(max_length=255)
 
     # Web service keys
-    auth_token = models.CharField(max_length=255, blank=True, null=True)
+    auth_token = models.CharField(max_length=255)
     # webServiceURL string
     locations = models.ManyToManyField('Location', related_name='passes', blank=True, null=True)
     relevant_date = models.DateTimeField(blank=True, null=True)
@@ -72,27 +72,51 @@ class Pass(models.Model):
                             ('PKTransitTypeGeneric', 'generic'),)
     transit_type = models.CharField(max_length=20, choices=TRANSIT_TYPE_CHOICES, null=True, blank=True)  # Boarding pass only
 
-    def serialize(self):
-        data = {
+    def to_dict(self):
+        return {
             'formatVersion': self.format_version,
             'passTypeIdentifier': self.identifier,
             'serialNumber': self.serial_number,
             'teamIdentifier': self.team_identifier,
+            'description': self.description,
+            'authenticationToken': self.auth_token,
             'webServiceURL': 'https://%s%s' % (SITE_DOMAIN, reverse('passbook-webservice')),
-            'barcode': self.barcode.serialize(),
+            'barcode': self.barcode.to_dict(),
             'organizationName': self.organization_name,
-            'locations': [location.serialize() for location in self.locations.all()],
+            'locations': [location.to_dict() for location in self.locations.all()],
             self.type: {
-                'headerFields': [field.serialize() for field in self.header_fields.all()],
-                'primaryFields': [field.serialize() for field in self.primary_fields.all()],
-                'secondaryFields': [field.serialize() for field in self.secondary_fields.all()],
-                'backFields': [field.serialize() for field in self.back_fields.all()]
+                'headerFields': [field.to_dict() for field in self.header_fields.all()],
+                'primaryFields': [field.to_dict() for field in self.primary_fields.all()],
+                'secondaryFields': [field.to_dict() for field in self.secondary_fields.all()],
+                'backFields': [field.to_dict() for field in self.back_fields.all()]
             }
         }
-        return json.dumps(data)
+
+    def serialize(self):
+        return json.dumps(self.to_dict())
+
+    def generate_bundle(self):
+        bundle = {
+            'pass.json': self.serialize()
+        }
+        return bundle
+
+    def generate_manifest(self, bundle=None):
+        """
+        The manifest is a JSON dictionary in a file named manifest.json.
+        The keys are paths to files in the pass package, relative to the pass.
+        The value of each key is the SHA-1 hash of that file’s contents.
+        """
+        bundle = bundle or self.generate_bundle()
+
+    def sign(self):
+        pass
+
+    def zip(self):
+        pass
 
     def __unicode__(self):
-        return u'Pass %s - %s' % (self.identifier, self.serial_number)
+        return u'%s %s' % (self.type, self.serial_number)
 
     class Meta:
         verbose_name_plural = 'passes'
@@ -109,7 +133,7 @@ class Barcode(models.Model):
     encoding = models.CharField(max_length=50, default='iso-8859-1')
     alt_text = models.CharField(max_length=255, blank=True, null=True)
 
-    def serialize(self):
+    def to_dict(self):
         barcode = {
             'message': self.message,
             'format': self.format,
@@ -150,7 +174,7 @@ class Field(models.Model):
 
     number_style = models.CharField(max_length=20, null=True, blank=True, choices=NUMBER_STYLES)
 
-    def serialize(self):
+    def to_dict(self):
         field = {
             'key': self.key,
             'label': self.label,
@@ -182,7 +206,7 @@ class Location(models.Model):
     altitude = models.FloatField(null=True)
     relevant_text = models.CharField(max_length=255, blank=True, null=True)
 
-    def serialize(self):
+    def to_dict(self):
         location = {'longitude': self.longitude,
                     'latitude': self.latitude}
 
