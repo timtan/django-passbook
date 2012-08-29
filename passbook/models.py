@@ -137,28 +137,31 @@ class Pass(models.Model):
                         manifest[name] = sha.hexdigest()
         return json.dumps(manifest)
 
-    def sign(self, manifest=None, keystr=None, keypath=None, passphrase=None):
+    def sign(self, manifest=None, certpath=None, keystr=None, keypath=None, passphrase=None):
         if keystr is None and keypath is not None:
             keystr = open(keypath).read()
         elif keystr is None and keypath is None:
             raise Exception('Unknown private key')
         manifest = manifest or self.generate_manifest()
-        args = [keystr]
+        args = [keypath, certpath]
         if passphrase is not None:
             args.append(lambda x: passphrase)
-        key = M2Crypto.EVP.load_key_string(*args)
-        key.sign_init()
-        key.sign_update(manifest)
-        signature = key.sign_final()
+        buffer = M2Crypto.BIO.MemoryBuffer(manifest)
+        signer = M2Crypto.SMIME.SMIME()
+        signer.load_key(keypath, certpath, lambda x: passphrase)
+        p7 = signer.sign(buffer, flags=M2Crypto.SMIME.PKCS7_DETACHED)
+        out = M2Crypto.BIO.MemoryBuffer()
+        p7.write_der(out)
+        signature = out.getvalue()
         return signature
 
 
-    def zip(self, keypath=None, keystr=None, passphrase=None):
+    def zip(self, certpath=None,  keypath=None, keystr=None, passphrase=None):
         s = StringIO()
         pkpass = zipfile.ZipFile(s, 'a')
         manifest = self.generate_manifest()
         pass_json = self.serialize()
-        signature = self.sign(keypath=keypath, keystr=keystr, passphrase=passphrase)
+        signature = self.sign(certpath=certpath, keypath=keypath, keystr=keystr, passphrase=passphrase)
         pkpass.writestr('manifest.json', manifest)
         pkpass.writestr('pass.json', pass_json)
         pkpass.writestr('signature', signature)
