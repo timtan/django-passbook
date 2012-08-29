@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import hashlib
+import zipfile
+from StringIO import StringIO
+
+import M2Crypto
 
 from django.db import models
 from django.core.urlresolvers import reverse
@@ -43,7 +48,7 @@ class Pass(models.Model):
                     'blank': True}
 
     logo = models.FilePathField('The image displayed on the front of the pass', **IMAGE_KWARGS)
-    icon = models.FilePathField('The pass\'s icon', **IMAGE_KWARGS)
+    icon = models.FilePathField('The pass\'s icon', path=IMAGE_PATH, recursive=True, match=IMAGE_TYPE)
     thumbnail_image = models.FilePathField('An additional image displayed on the front of the pass', **IMAGE_KWARGS)
     background_image = models.FilePathField('The image displayed as the background of the front of the pass', **IMAGE_KWARGS)
     strip_image = models.FilePathField('The image displayed as a strip behind the primary fields on the front of the pass', **IMAGE_KWARGS)
@@ -107,13 +112,80 @@ class Pass(models.Model):
         The keys are paths to files in the pass package, relative to the pass.
         The value of each key is the SHA-1 hash of that file’s contents.
         """
-        bundle = bundle or self.generate_bundle()
+        # bundle = bundle or self.generate_bundle()
+        images = (('background_image', 'background@2x.png'),
+                  ('icon', 'icon@2x.png'),
+                  ('thumbnail_image', 'thumbnail@2x.png'),
+                  ('strip_image', 'strip@2x.png'),
+                  ('logo', 'logo@2x.png'))
 
-    def sign(self):
-        pass
+        sha = hashlib.sha1()
+        sha.update(self.serialize())
 
-    def zip(self):
-        pass
+        manifest = {
+            'pass.json': sha.hexdigest()
+        }
+        for attr, image_name in images:
+            path = getattr(self, attr)
+            if path is not None and path != '':
+                low_res_path = path.replace('@2x', '')
+                low_res_name = image_name.replace('@2x', '')
+                for name, path in ((image_name, path), (low_res_name, low_res_path)):
+                    with open(path) as file:
+                        sha = hashlib.sha1()
+                        sha.update(file.read())
+                        manifest[name] = sha.hexdigest()
+        return json.dumps(manifest)
+
+    def sign(self, manifest=None, keystr=None, keypath=None, passphrase=None):
+        if keystr is None and keypath is not None:
+            keystr = open(keypath).read()
+        elif keystr is None and keypath is None:
+            raise Exception('Unknown private key')
+        manifest = manifest or self.generate_manifest()
+        args = [keystr]
+        if passphrase is not None:
+            args.append(lambda x: passphrase)
+        key = M2Crypto.EVP.load_key_string(*args)
+        key.sign_init()
+        key.sign_update(manifest)
+        signature = key.sign_final()
+        return signature
+
+
+    def zip(self, keypath=None, keystr=None, passphrase=None):
+        s = StringIO()
+        pkpass = zipfile.ZipFile(s, 'a')
+        manifest = self.generate_manifest()
+        pass_json = self.serialize()
+        signature = self.sign(keypath=keypath, keystr=keystr, passphrase=passphrase)
+        pkpass.writestr('manifest.json', manifest)
+        pkpass.writestr('pass.json', pass_json)
+        pkpass.writestr('signature', signature)
+
+
+        images = (('background_image', 'background@2x.png'),
+                  ('icon', 'icon@2x.png'),
+                  ('thumbnail_image', 'thumbnail@2x.png'),
+                  ('strip_image', 'strip@2x.png'),
+                  ('logo', 'logo@2x.png'))
+
+        for attr, image_name in images:
+            path = getattr(self, attr)
+            if path is not None and path != '':
+                low_res_path = path.replace('@2x', '')
+                low_res_name = image_name.replace('@2x', '')
+                for name, path in ((image_name, path), (low_res_name, low_res_path)):
+                    with open(path) as file:
+                        pkpass.writestr(name, file.read())
+
+
+
+        for file in pkpass.filelist:
+            file.create_system = 0
+        pkpass.close()
+        s.seek(0)
+        return s.read()
 
     def __unicode__(self):
         return u'%s %s' % (self.type, self.serial_number)
