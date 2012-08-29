@@ -17,6 +17,18 @@ IMAGE_TYPE = '.*\.(png|PNG)$'
 SITE_DOMAIN = Site.objects.get_current().domain
 
 
+class Signer(models.Model):
+    label = models.CharField('A unique label for this signer', max_length=255,
+                             unique=True)
+    certificate = models.TextField()
+    private_key = models.TextField()
+    passphrase = models.CharField('Passphrase for the private key', max_length=100,
+                                  blank=True, null=True) # Temporary only - we need a more secure way to store passphrase
+
+    def __unicode__(self):
+        return u'%s' % self.label
+
+
 class Pass(models.Model):
     # Standard keys
     format_version = 1
@@ -68,6 +80,8 @@ class Pass(models.Model):
     secondary_fields = models.ManyToManyField('Field', related_name='secondary+', blank=True, null=True)
     auxiliary_fields = models.ManyToManyField('Field', related_name='aux+', blank=True, null=True)
     back_fields = models.ManyToManyField('Field', related_name='back+', blank=True, null=True)
+
+    pass_signer = models.ForeignKey(Signer)
 
     # associatedStoreIdentifiers --> array of numbers --> where does it go?
     TRANSIT_TYPE_CHOICES = (('PKTransitTypeAir', 'air'),
@@ -137,18 +151,16 @@ class Pass(models.Model):
                         manifest[name] = sha.hexdigest()
         return json.dumps(manifest)
 
-    def sign(self, manifest=None, certpath=None, keystr=None, keypath=None, passphrase=None):
-        if keystr is None and keypath is not None:
-            keystr = open(keypath).read()
-        elif keystr is None and keypath is None:
-            raise Exception('Unknown private key')
+    def sign(self, manifest=None):
         manifest = manifest or self.generate_manifest()
-        args = [keypath, certpath]
-        if passphrase is not None:
-            args.append(lambda x: passphrase)
         buffer = M2Crypto.BIO.MemoryBuffer(manifest)
         signer = M2Crypto.SMIME.SMIME()
-        signer.load_key(keypath, certpath, lambda x: passphrase)
+        key = M2Crypto.BIO.MemoryBuffer(str(self.pass_signer.private_key))
+        cert = M2Crypto.BIO.MemoryBuffer(str(self.pass_signer.certificate))
+        args = [key, cert]
+        if self.pass_signer.passphrase:
+            args.append(lambda x: self.pass_signer.passphrase)
+        signer.load_key_bio(*args)
         p7 = signer.sign(buffer, flags=M2Crypto.SMIME.PKCS7_DETACHED)
         out = M2Crypto.BIO.MemoryBuffer()
         p7.write_der(out)
@@ -156,12 +168,12 @@ class Pass(models.Model):
         return signature
 
 
-    def zip(self, certpath=None,  keypath=None, keystr=None, passphrase=None):
+    def zip(self):
         s = StringIO()
         pkpass = zipfile.ZipFile(s, 'a')
         manifest = self.generate_manifest()
         pass_json = self.serialize()
-        signature = self.sign(certpath=certpath, keypath=keypath, keystr=keystr, passphrase=passphrase)
+        signature = self.sign()
         pkpass.writestr('manifest.json', manifest)
         pkpass.writestr('pass.json', pass_json)
         pkpass.writestr('signature', signature)
