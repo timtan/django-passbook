@@ -92,7 +92,7 @@ class Pass(models.Model):
     transit_type = models.CharField(max_length=20, choices=TRANSIT_TYPE_CHOICES, null=True, blank=True)  # Boarding pass only
 
     def to_dict(self):
-        return {
+        d = {
             'formatVersion': self.format_version,
             'passTypeIdentifier': self.identifier,
             'serialNumber': self.serial_number,
@@ -108,8 +108,29 @@ class Pass(models.Model):
                 'primaryFields': [field.to_dict() for field in self.primary_fields.all()],
                 'secondaryFields': [field.to_dict() for field in self.secondary_fields.all()],
                 'backFields': [field.to_dict() for field in self.back_fields.all()]
-            }
+            },
+            'backgroundColor' : self.background_color
         }
+
+        if self.foreground_color:
+            d['foregroundColor'] = self.foreground_color
+
+        if self.type == 'boardingPass':
+            d['boardingPass']['transitType'] = self.transit_type
+
+        optional_images = (('logo', self.logo),
+                           ('thumbnailImage', self.thumbnail_image),
+                           ('stripImage', self.strip_image),
+                           ('backgroundImage', self.background_image))
+
+        for attr_name, attr in optional_images:
+            if attr:
+                d[attr_name] = attr
+
+        if self.logo_text is not None:
+            d['logoText'] = self.logo_text
+
+        return d
 
     def serialize(self):
         return json.dumps(self.to_dict())
