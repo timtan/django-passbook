@@ -1,0 +1,144 @@
+{% extends 'passbook/base.html' %}
+{% block title %}Add a pass{% endblock %}
+{% block css %}@import url('{{ STATIC_URL }}passbook/css/spectrum.css');{% endblock %}
+{% block content %}
+<div id="bb-pass" class="container top-margin">
+    <div id="controls">
+        <h1>Create a New Pass</h1>
+        <form action="." method="POST" class="form-horizontal">
+            <label>Pass type</label>
+            <div id="pass-type" class="btn-group" data-toggle="buttons-radio">
+                {% for value, label in pass_types %}
+                <button type="button" class="btn btn-primary passType" data-val="{{ value }}">{{ label }}</button>
+                {% endfor %}
+            </div>
+            <div class="control-group">
+                <div class="input-prepend">
+                    <label class="control-label" for="identifier">Identifier</label>
+                    <div class="controls">
+                        <span class="add-on">pass.</span><input class="span2" id="identifier" size="16" type="text" />
+                        <span class="help-inline">The pass identifier</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="control-label" for="serial_number">Serial number</label>
+                </div>
+                <div class="controls">
+                    <input class="span2" id="serial_number" size="25" type="text" value="{{ suggested_serial_number }}" />
+                    <span class="help-inline">The serial number for the pass</span>
+                </div>
+                <div>
+                    <label class="control-label" for="organization_name">Organization name</label>
+                </div>
+                <div class="controls">
+                    <input class="span2" id="organization_name" size="20" type="text" />
+                </div>
+                <div>
+                    <label class="control-label" for="auth_token">Authorization token</label>
+                </div>
+                <div class="controls">
+                    <input class="span2" id="auth_token" size="25" type="text" value="{{ suggested_auth_token }}" />
+                    <span class="help-inline">The authorization token to access the webservice</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="background_color">Background color</label>
+                <div class="controls">
+                    <input id="background_color" name="background_color" type="color" value="red" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="foreground_color">Foreground color</label>
+                <div class="controls">
+                    <input id="foreground_color" name="foreground_color" type="color" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="label_color">Label color</label>
+                <div class="controls">
+                    <input id="label_color" name="label_color" type="color" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="iphone">
+        <div id="iphone-screen">
+            <div id="pass">
+                <div class="perforation"></div>
+                <input type="text" id="logo_text" value="logo text" />
+                <div class="perforation perforation-bottom"></div>
+                <div class="divider divider-top"></div>
+                <div class="divider divider-bottom"></div>
+            </div>
+        </div>
+        <div class="cb"></div>
+    </div>
+</div>
+<div id="map_canvas" style="width: 300px; height: 300px;"></div>
+<script type="text/javascript" src="{{ STATIC_URL }}passbook/js/underscore-min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}passbook/js/backbone-min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}passbook/js/spectrum.js"></script>
+<script type="text/javascript">
+    $('#background_color, #foreground_color').spectrum({
+        preferredFormat: 'rgb',
+        showInput: true,
+        showInitial: true
+    });
+    $('#background_color').spectrum('set', '#f00');
+    var Pass = Backbone.Model.extend({});
+    var PassView = Backbone.View.extend({
+        events: {
+            'click .passType': 'setPassType',
+            'change #background_color': 'setBackgroundColor',
+            'change #foreground_color': 'setForegroundColor',
+            'change #logo_text': 'setLogoText'
+        },
+        initialize: function() {
+            this.$pass = this.$el.find('#pass');
+            this.model = new Pass();
+        },
+        setPassType: function(e) {
+            var passType = $(e.currentTarget).data('val');
+            this.$pass.attr('class', passType);
+            this.model.set('pass_type', passType);
+            this.$el.find('.perforation').toggle(passType === 'coupon')
+        },
+        setBackgroundColor: function(e) {
+            var self = this,
+                rgb = $(e.currentTarget).spectrum('get').toRgbString();
+            this.model.set('background_color', rgb);
+            this.$el.find('#pass').css('background-color', rgb);
+        },
+        setForegroundColor: function(e) {
+            var self = this,
+                rgb = $(e.currentTarget).spectrum('get').toRgbString();
+            this.model.set('foreground_color', rgb);
+            this.$el.find('#pass input').css('color', rgb);
+        },
+        setLogoText: function(e) {
+            var text = $(e.currentTarget).val();
+            this.model.set('logo_text', text);
+        }
+    });
+    var passView = new PassView({el: $('#bb-pass')});
+</script>
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
+{% comment %}
+<script type="text/javascript">
+    function initialize() {
+        var mapOptions = {
+            center: new google.maps.LatLng(-33.873515, 151.206941),
+            zoom: 8,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+        google.maps.event.addListener(map, 'click', function(e) {
+            var latitude = e.latLng.lat(),
+                longitude = e.latLng.lng();
+            console.log(latitude, longitude);
+        });
+    }
+    initialize();
+</script>
+{% endcomment %}
+{% endblock %}

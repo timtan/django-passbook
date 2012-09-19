@@ -1,0 +1,138 @@
+html, body { padding: 0; margin: 0; }
+body { background-color: #000; color: #fff; }
+.cb { clear: both; }
+.input-prepend .add-on { color: #000; }
+div.container.top-margin {
+    margin-top: 30px;
+}
+div#controls {
+    width: 600px;
+    height: 744px;
+    float: left;
+}
+div#controls h1 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+#pass-type {
+    margin-bottom: 20px;
+}
+div#controls form.create-pass-form {
+    margin-top: 15px;
+}
+div#iphone {
+    width: 396px;
+    height: 744px;
+    background-image: url('../img/iphone.png');
+    position: relative;
+    float: left;
+    z-index: 2;
+}
+div#iphone-screen {
+    width: 320px;
+    height: 480px;
+    position: absolute;
+    top: 126px;
+    left: 38px;
+}
+div#pass {
+    margin: 50px 4px;
+    width: 312px;
+    height: 398px;
+    background-color: #f00;
+    position: relative;
+    background-repeat: no-repeat;
+    display: none;
+}
+div#pass.coupon, div#pass.boardingPass, div#pass.generic, div#pass.eventTicket, div#pass.storeCard { display: block; }
+div#pass.storeCard, div#pass.boardingPass, div#pass.generic {
+    border-radius: 10px;
+}
+div#pass.eventTicket {
+    background-image: url('../img/eventTicket.png');
+    background-size: 312px 16px;
+    background-repeat: no-repeat;
+}
+div#pass.boardingPass {
+    background-image: url('../img/boardingPass.png');
+    background-size: 312px 66px;
+}
+div.perforation {
+    width: 312px;
+    height: 4px;
+    background-image: url('../img/perforation.png');
+    background-size: 312px 4px;
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 0;
+    display: none;
+}
+div.perforation-bottom {
+    bottom: 0;
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+div.divider {
+    width: 280px;
+    height: 1px;
+    position: absolute;
+    left: 15px;
+}
+div.divider-top {
+    top: 61px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+div.divider-bottom {
+    top: 62px;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+#logo_text {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Helvetica Neue';
+    -webkit-appearance: caret;
+    -moz-appearance: caret;
+    font-size: 18px;
+    height: 24px;
+    padding: 5px;
+    width: 286px;
+    margin-left: 8px;
+    margin-top: 20px;
+    font-weight: bold;
+    border-style: none;
+    color: #000;
+}
+#logo_text:focus { outline: none; }
+#serial_number, #auth_token {
+    width: 226px;
+}
+
+/* RETINA DISPLAYS */
+@media
+only screen and (-webkit-min-device-pixel-ratio: 2),
+only screen and (min--moz-device-pixel-ratio: 2),
+only screen and (-o-min-device-pixel-ratio: 2/1),
+only screen and (min-device-pixel-ratio: 2),
+only screen and (min-resolution: 192dpi),
+only screen and (min-resolution: 2dppx),
+only screen and (-moz-min-device-pixel-ratio: 2) {
+    div#iphone {
+        background-image: url('../img/iphone@2x.png');
+        background-size: 396px 744px;
+    }
+    div.perforation {
+        background-image: url('../img/perforation@2x.png');
+    }
+    div#pass.eventTicket {
+        background-image: url('../img/eventTicket@2x.png');
+    }
+    div#pass.boardingPass {
+        background-image: url('../img/boardingPass@2x.png');
+    }
+}

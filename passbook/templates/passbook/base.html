@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf8" />
+        <title>Django Passbook :: {% block title %}{% endblock %}</title>
+        <style type="text/css">
+            @import url('{{ STATIC_URL }}passbook/bootstrap/css/bootstrap.min.css');
+            @import url('{{ STATIC_URL }}passbook/bootstrap/css/bootstrap-responsive.min.css');
+            @import url('{{ STATIC_URL }}passbook/css/passbook.css');
+            {% block css %}{% endblock %}
+        </style>
+        <script type="text/javascript" src="{{ STATIC_URL }}passbook/js/jquery-1.8.1.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}passbook/bootstrap/js/bootstrap.min.js"></script>
+        {% block extra_head %}{% endblock %}
+    </head>
+    <body>
+        <div id="parent-container" class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>

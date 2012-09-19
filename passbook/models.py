@@ -44,9 +44,11 @@ class Pass(models.Model):
 
     # Web service keys
     auth_token = models.CharField(max_length=255)
-    # webServiceURL string
+
+    # relevancy
     locations = models.ManyToManyField('Location', related_name='passes', blank=True, null=True)
     relevant_date = models.DateTimeField(blank=True, null=True)
+
     barcode = models.ForeignKey('Barcode', related_name='passes')
     background_color = models.CharField(max_length=20)
     foreground_color = models.CharField(max_length=20, blank=True, null=True)
