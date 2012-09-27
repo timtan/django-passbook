@@ -57,6 +57,33 @@ div#pass.boardingPass {
     background-image: url('../img/boardingPass.png');
     background-size: 312px 66px;
 }
+div#pass .barcode {
+    position: absolute;
+}
+div#pass .barcode.pdf-417 {
+    width: 254px;
+    height: 72px;
+    left: 28px;
+    bottom: 28px;
+    background-image: url('../img/pdf-417.png');
+    background-size: 254px 72px;
+}
+div#pass .barcode.qr-code {
+    width: 146px;
+    height: 145px;
+    bottom: 10px;
+    left: 83px;
+    background-image: url('../img/qr-code.png');
+    background-size: 146px 145px;
+}
+div#pass .barcode.aztec {
+    width: 169px;
+    height: 168px;
+    bottom: 10px;
+    left: 71px;
+    background-image: url('../img/aztec.png');
+    background-size: 169px 168px;
+}
 div.perforation {
     width: 312px;
     height: 4px;
@@ -134,5 +161,14 @@ only screen and (-moz-min-device-pixel-ratio: 2) {
     }
     div#pass.boardingPass {
         background-image: url('../img/boardingPass@2x.png');
+    }
+    div#pass .barcode.pdf-417 {
+        background-image: url('../img/pdf-417@2x.png');
+    }
+    div#pass .barcode.qr-code {
+        background-image: url('../img/qr-code@2x.png');
+    }
+    div#pass .barcode.aztec {
+        background-image: url('../img/aztec@2x.png');
     }
 }

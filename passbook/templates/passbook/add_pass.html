@@ -59,6 +59,15 @@
                     <input id="label_color" name="label_color" type="color" />
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" for="barcode_type">Barcode type</label>
+                <div class="controls">
+                    <select id="barcode_type" name="barcode_type">
+                        <option value=""> ------- </option>
+                        {% for value, title in barcode_types %}<option value="{{ value }}">{{ title }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
         </form>
     </div>
     <div id="iphone">
@@ -69,6 +78,7 @@
                 <div class="perforation perforation-bottom"></div>
                 <div class="divider divider-top"></div>
                 <div class="divider divider-bottom"></div>
+                <div class="barcode"></div>
             </div>
         </div>
         <div class="cb"></div>
@@ -91,7 +101,8 @@
             'click .passType': 'setPassType',
             'change #background_color': 'setBackgroundColor',
             'change #foreground_color': 'setForegroundColor',
-            'change #logo_text': 'setLogoText'
+            'change #logo_text': 'setLogoText',
+            'change #barcode_type': 'setBarcodeType'
         },
         initialize: function() {
             this.$pass = this.$el.find('#pass');
@@ -118,6 +129,19 @@
         setLogoText: function(e) {
             var text = $(e.currentTarget).val();
             this.model.set('logo_text', text);
+        },
+        setBarcodeType: function(e) {
+            var types = {
+                'PKBarcodeFormatPDF417': 'pdf-417',
+                'PKBarcodeFormatQR': 'qr-code',
+                'PKBarcodeFormatAztec': 'aztec'
+            };
+            var $barcode = $('.barcode');
+            $barcode.attr('class', 'barcode');
+            var barcodeType = $(e.currentTarget).val();
+            if (barcodeType in types) {
+                $barcode.addClass(types[barcodeType]);
+            }
         }
     });
     var passView = new PassView({el: $('#bb-pass')});

@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
-from passbook.models import Pass
+from passbook.models import Pass, Barcode
 import uuid
 
 def webservice(request, *args, **kwargs):
@@ -20,4 +20,5 @@ def add_pass(request):
         """"""
     return render(request, 'passbook/add_pass.html', {'pass_types': Pass.PASS_TYPES,
                                                       'suggested_serial_number': uuid.uuid4().get_hex(),
-                                                      'suggested_auth_token': uuid.uuid4().get_hex()})
+                                                      'suggested_auth_token': uuid.uuid4().get_hex(),
+                                                      'barcode_types': Barcode.FORMAT_CHOICES})
