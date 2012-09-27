@@ -14,7 +14,6 @@ from django.contrib.sites.models import Site
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
-SITE_DOMAIN = Site.objects.get_current().domain
 
 
 class Signer(models.Model):
@@ -66,7 +65,7 @@ class Pass(models.Model):
     thumbnail_image = models.FilePathField('An additional image displayed on the front of the pass', **IMAGE_KWARGS)
     background_image = models.FilePathField('The image displayed as the background of the front of the pass', **IMAGE_KWARGS)
     strip_image = models.FilePathField('The image displayed as a strip behind the primary fields on the front of the pass', **IMAGE_KWARGS)
-    supress_strip_shine = models.NullBooleanField('Supress the shine effect of the strip image')
+    supress_strip_shine = models.BooleanField('Supress the shine effect of the strip image', default=False)
     logo_text = models.CharField(max_length=255, blank=True, null=True)
 
     """ Style-Specific Information Keys """
@@ -77,11 +76,11 @@ class Pass(models.Model):
                   ('generic', 'generic'),)
 
     type = models.CharField(max_length=50, choices=PASS_TYPES)
-    header_fields = models.ManyToManyField('Field', related_name='header+', blank=True, null=True)
-    primary_fields = models.ManyToManyField('Field', related_name='primary+')
-    secondary_fields = models.ManyToManyField('Field', related_name='secondary+', blank=True, null=True)
-    auxiliary_fields = models.ManyToManyField('Field', related_name='aux+', blank=True, null=True)
-    back_fields = models.ManyToManyField('Field', related_name='back+', blank=True, null=True)
+    #header_fields = models.ManyToManyField('Field', related_name='header+', blank=True, null=True)
+    #primary_fields = models.ManyToManyField('Field', related_name='primary+')
+    #secondary_fields = models.ManyToManyField('Field', related_name='secondary+', blank=True, null=True)
+    #auxiliary_fields = models.ManyToManyField('Field', related_name='aux+', blank=True, null=True)
+    #back_fields = models.ManyToManyField('Field', related_name='back+', blank=True, null=True)
 
     pass_signer = models.ForeignKey(Signer)
 
@@ -101,15 +100,16 @@ class Pass(models.Model):
             'teamIdentifier': self.team_identifier,
             'description': self.description,
             'authenticationToken': self.auth_token,
-            'webServiceURL': 'https://%s%s' % (SITE_DOMAIN, reverse('passbook-webservice')),
+            'webServiceURL': 'https://%s%s' % (Site.objects.get_current().domain, reverse('passbook-webservice')),
             'barcode': self.barcode.to_dict(),
             'organizationName': self.organization_name,
             'locations': [location.to_dict() for location in self.locations.all()],
             self.type: {
-                'headerFields': [field.to_dict() for field in self.header_fields.all()],
-                'primaryFields': [field.to_dict() for field in self.primary_fields.all()],
-                'secondaryFields': [field.to_dict() for field in self.secondary_fields.all()],
-                'backFields': [field.to_dict() for field in self.back_fields.all()]
+                'headerFields': [field.to_dict() for field in self.fields.filter(field_type='header').order_by('priority')],
+                'primaryFields': [field.to_dict() for field in self.fields.filter(field_type='primary').order_by('priority')],
+                'secondaryFields': [field.to_dict() for field in self.fields.filter(field_type='secondary').order_by('priority')],
+                'auxiliaryFields': [field.to_dict() for field in self.fields.filter(field_type='auxiliary').order_by('priority')],
+                'backFields': [field.to_dict() for field in self.fields.filter(field_type='back').order_by('priority')]
             },
             'backgroundColor' : self.background_color
         }
@@ -258,11 +258,22 @@ class Barcode(models.Model):
 
 
 class Field(models.Model):
+    _pass = models.ForeignKey(Pass, related_name='fields')
     key = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
     value = models.TextField()
+
+    FIELD_TYPES = (('header', 'header field'),
+                   ('primary', 'primary field'),
+                   ('secondary', 'secondary field'),
+                   ('auxiliary', 'auxiliary field'),
+                   ('back', 'back field'),)
+
+    field_type = models.CharField(max_length=20, choices=FIELD_TYPES)
+    priority = models.PositiveSmallIntegerField('Field priority (0 is highest priority)', default=0)
     text_alignment = models.CharField(max_length=20, blank=True, null=True)
     change_message = models.CharField(max_length=255, blank=True, null=True)
+
     # Allow date/time styles to be defined if value is a date or time.
     DATE_STYLES = (('PKDateStyleNone', 'PKDateStyleNone'),
                    ('PKDateStyleShort', 'PKDateStyleShort'),
@@ -307,7 +318,10 @@ class Field(models.Model):
         return field
 
     def __unicode__(self):
-        return u'Field: %s' % self.key
+        return u'Field key: %s, label: %s, value: %s' % (self.key, self.label, self.value[:20])
+
+    class Meta:
+        unique_together = ('_pass', 'key')  # Field keys need to be unique per pass
 
 
 class Location(models.Model):
