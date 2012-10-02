@@ -22,7 +22,7 @@ class Signer(models.Model):
     certificate = models.TextField()
     private_key = models.TextField()
     passphrase = models.CharField('Passphrase for the private key', max_length=100,
-                                  blank=True, null=True) # Temporary only - we need a more secure way to store passphrase
+                                  blank=True, null=True)  # Temporary only - we need a more secure way to store passphrase
 
     def __unicode__(self):
         return u'%s' % self.label
@@ -76,12 +76,6 @@ class Pass(models.Model):
                   ('generic', 'generic'),)
 
     type = models.CharField(max_length=50, choices=PASS_TYPES)
-    #header_fields = models.ManyToManyField('Field', related_name='header+', blank=True, null=True)
-    #primary_fields = models.ManyToManyField('Field', related_name='primary+')
-    #secondary_fields = models.ManyToManyField('Field', related_name='secondary+', blank=True, null=True)
-    #auxiliary_fields = models.ManyToManyField('Field', related_name='aux+', blank=True, null=True)
-    #back_fields = models.ManyToManyField('Field', related_name='back+', blank=True, null=True)
-
     pass_signer = models.ForeignKey(Signer)
 
     # associatedStoreIdentifiers --> array of numbers --> where does it go?
@@ -111,7 +105,7 @@ class Pass(models.Model):
                 'auxiliaryFields': [field.to_dict() for field in self.fields.filter(field_type='auxiliary').order_by('priority')],
                 'backFields': [field.to_dict() for field in self.fields.filter(field_type='back').order_by('priority')]
             },
-            'backgroundColor' : self.background_color
+            'backgroundColor': self.background_color
         }
 
         if self.foreground_color:
@@ -190,7 +184,6 @@ class Pass(models.Model):
         signature = out.getvalue()
         return signature
 
-
     def zip(self):
         s = StringIO()
         pkpass = zipfile.ZipFile(s, 'a')
@@ -200,7 +193,6 @@ class Pass(models.Model):
         pkpass.writestr('manifest.json', manifest)
         pkpass.writestr('pass.json', pass_json)
         pkpass.writestr('signature', signature)
-
 
         images = (('background_image', 'background@2x.png'),
                   ('icon', 'icon@2x.png'),
@@ -216,8 +208,6 @@ class Pass(models.Model):
                 for name, path in ((image_name, path), (low_res_name, low_res_path)):
                     with open(path) as file:
                         pkpass.writestr(name, file.read())
-
-
 
         for file in pkpass.filelist:
             file.create_system = 0
@@ -286,7 +276,7 @@ class Field(models.Model):
     is_relative = models.NullBooleanField()
 
     # Allow number style keys if value is a number
-    currency_code =  models.CharField(max_length=5, null=True, blank=True)
+    currency_code = models.CharField(max_length=5, null=True, blank=True)
 
     NUMBER_STYLES = (('PKNumberStyleDecimal', 'Decimal'),
                      ('PKNumberStylePercent', 'Percentage'),
@@ -301,7 +291,7 @@ class Field(models.Model):
             'label': self.label,
             'value': self.value
         }
-        keys_and_attrs =  (
+        keys_and_attrs = (
             ('textAlignment', 'text_alignment'),
             ('changeMessage', 'change_message'),
             ('dateStyle', 'date_style'),
