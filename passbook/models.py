@@ -9,7 +9,7 @@ import M2Crypto
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.utils import simplejson as json
+import json
 from django.contrib.sites.models import Site
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
