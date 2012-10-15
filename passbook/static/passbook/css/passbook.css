@@ -2,6 +2,9 @@ html, body { padding: 0; margin: 0; }
 body { background-color: #000; color: #fff; }
 .cb { clear: both; }
 .input-prepend .add-on { color: #000; }
+a.btn.next, a.btn.previous {
+    margin-top: 20px;
+}
 div.container.top-margin {
     margin-top: 30px;
 }
@@ -19,6 +22,12 @@ div#controls h1 {
 }
 div#controls form.create-pass-form {
     margin-top: 15px;
+}
+div#controls form.create-pass-form .well label, div#controls form.create-pass-form .well p {
+    color: #000;
+}
+div#controls #transit-type-group {
+    display: none;
 }
 div#iphone {
     width: 396px;

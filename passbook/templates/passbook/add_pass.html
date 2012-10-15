@@ -5,7 +5,7 @@
 <div id="bb-pass" class="container top-margin">
     <div id="controls">
         <h1>Create a New Pass</h1>
-        <form action="." method="POST" class="form-horizontal">
+        <form action="." method="POST" class="create-pass-form">
             <label>Pass type</label>
             <div id="pass-type" class="btn-group" data-toggle="buttons-radio">
                 {% for value, label in pass_types %}
@@ -13,59 +13,83 @@
                 {% endfor %}
             </div>
             <div class="control-group">
-                <div class="input-prepend">
-                    <label class="control-label" for="identifier">Identifier</label>
+                <div  id="transit-type-group">
+                    <label class="control-label" for="transit_type">Transit type</label>
                     <div class="controls">
-                        <span class="add-on">pass.</span><input class="span2" id="identifier" size="16" type="text" />
-                        <span class="help-inline">The pass identifier</span>
+                        <select id="transit_type" name="transit_type">
+                            <option value=""> ------- </option>
+                            {% for value, title in transit_types %}<option value="{{ value }}">{{ title }}</option>{% endfor %}
+                        </select>
                     </div>
                 </div>
-                <div>
-                    <label class="control-label" for="serial_number">Serial number</label>
+                <div class="well">
+                    <div class="input-prepend">
+                        <label class="control-label" for="identifier">Identifier</label>
+                        <div class="controls">
+                            <span class="add-on">pass.</span><input class="span2" id="identifier" size="16" type="text" />
+                            <span class="help-inline">The pass identifier</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="control-label" for="serial_number">Serial number</label>
+                    </div>
+                    <div class="controls">
+                        <input class="span2" id="serial_number" size="25" type="text" value="{{ suggested_serial_number }}" />
+                        <span class="help-inline">The serial number for the pass</span>
+                    </div>
+                    <div>
+                        <label class="control-label" for="organization_name">Organization name</label>
+                    </div>
+                    <div class="controls">
+                        <input class="span2" id="organization_name" size="20" type="text" />
+                    </div>
+                    <div>
+                        <label class="control-label" for="auth_token">Authorization token</label>
+                    </div>
+                    <div class="controls">
+                        <input class="span2" id="auth_token" size="25" type="text" value="{{ suggested_auth_token }}" />
+                        <span class="help-inline">The authorization token to access the webservice</span>
+                    </div>
+                    <a class="btn next pull-right">next</a>
+                    <div class="clearfix"></div>
                 </div>
-                <div class="controls">
-                    <input class="span2" id="serial_number" size="25" type="text" value="{{ suggested_serial_number }}" />
-                    <span class="help-inline">The serial number for the pass</span>
+                <div class="well" style="display:none;">
+                    <label class="control-label" for="background_color">Background color</label>
+                    <div class="controls">
+                        <input id="background_color" name="background_color" type="color" value="red" />
+                    </div>
+                    <label class="control-label" for="foreground_color">Foreground color</label>
+                    <div class="controls">
+                        <input id="foreground_color" name="foreground_color" type="color" />
+                    </div>
+                    <label class="control-label" for="label_color">Label color</label>
+                    <div class="controls">
+                        <input id="label_color" name="label_color" type="color" />
+                    </div>
+                    <a class="btn previous">previous</a>
+                    <a class="btn next pull-right">next</a>
+                    <div class="clearfix"></div>
                 </div>
-                <div>
-                    <label class="control-label" for="organization_name">Organization name</label>
+                <div class="well" style="display:none;">
+                    <label class="control-label" for="barcode_type">Barcode type</label>
+                    <div class="controls">
+                        <select id="barcode_type" name="barcode_type">
+                            <option value=""> ------- </option>
+                            {% for value, title in barcode_types %}<option value="{{ value }}">{{ title }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <label class="control-label" for="barcode_value">Barcode value</label>
+                    <div class="controls">
+                        <input type="text" id="barcode_value" size="25" />
+                        <span class="help-inline">The barcode's scannable value</span>
+                    </div>
+                    <a class="btn previous">previous</a>
+                    <a class="btn next pull-right">next</a>
                 </div>
-                <div class="controls">
-                    <input class="span2" id="organization_name" size="20" type="text" />
-                </div>
-                <div>
-                    <label class="control-label" for="auth_token">Authorization token</label>
-                </div>
-                <div class="controls">
-                    <input class="span2" id="auth_token" size="25" type="text" value="{{ suggested_auth_token }}" />
-                    <span class="help-inline">The authorization token to access the webservice</span>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="background_color">Background color</label>
-                <div class="controls">
-                    <input id="background_color" name="background_color" type="color" value="red" />
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="foreground_color">Foreground color</label>
-                <div class="controls">
-                    <input id="foreground_color" name="foreground_color" type="color" />
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="label_color">Label color</label>
-                <div class="controls">
-                    <input id="label_color" name="label_color" type="color" />
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="barcode_type">Barcode type</label>
-                <div class="controls">
-                    <select id="barcode_type" name="barcode_type">
-                        <option value=""> ------- </option>
-                        {% for value, title in barcode_types %}<option value="{{ value }}">{{ title }}</option>{% endfor %}
-                    </select>
+                <div class="well" style="display: none;">
+                    <legend>Header fields</legend>
+                    <p>Add your header fields</p>
+                    <a class="btn previous">previous</a>
                 </div>
             </div>
         </form>
@@ -89,7 +113,7 @@
 <script type="text/javascript" src="{{ STATIC_URL }}passbook/js/backbone-min.js"></script>
 <script type="text/javascript" src="{{ STATIC_URL }}passbook/js/spectrum.js"></script>
 <script type="text/javascript">
-    $('#background_color, #foreground_color').spectrum({
+    $('#background_color, #foreground_color, #label_color').spectrum({
         preferredFormat: 'rgb',
         showInput: true,
         showInitial: true
@@ -102,7 +126,10 @@
             'change #background_color': 'setBackgroundColor',
             'change #foreground_color': 'setForegroundColor',
             'change #logo_text': 'setLogoText',
-            'change #barcode_type': 'setBarcodeType'
+            'change #barcode_type': 'setBarcodeType',
+            'change #transit_type': 'setTransitType',
+            'click a.next': 'showNext',
+            'click a.previous': 'showPrevious'
         },
         initialize: function() {
             this.$pass = this.$el.find('#pass');
@@ -113,6 +140,10 @@
             this.$pass.attr('class', passType);
             this.model.set('pass_type', passType);
             this.$el.find('.perforation').toggle(passType === 'coupon')
+            this.$el.find('#transit-type-group').toggle(passType === 'boardingPass');
+        },
+        setTransitType: function(e) {
+            this.model.set('transit_type', $(e.currentTarget).val());
         },
         setBackgroundColor: function(e) {
             var self = this,
@@ -142,6 +173,18 @@
             if (barcodeType in types) {
                 $barcode.addClass(types[barcodeType]);
             }
+        },
+        showNext: function(e) {
+            var $well = $(e.currentTarget).closest('.well');
+            var $next = $well.next();
+            $well.hide();
+            $next.show();
+        },
+        showPrevious: function(e) {
+            var $well = $(e.currentTarget).closest('.well');
+            var $prev = $well.prev();
+            $well.hide();
+            $prev.show();
         }
     });
     var passView = new PassView({el: $('#bb-pass')});
