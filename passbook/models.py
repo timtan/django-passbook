@@ -3,8 +3,8 @@ import os
 import hashlib
 import zipfile
 from StringIO import StringIO
-
-import M2Crypto
+import subprocess
+import tempfile
 
 from django.db import models
 from django.core.urlresolvers import reverse
@@ -15,12 +15,15 @@ from django.contrib.sites.models import Site
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
 
+SSL_ARGS = '''openssl smime -binary -sign -signer %(cert)s -inkey %(key)s -in %(manifest)s -outform DER -certfile %(wwdr_cert)s'''
+
 
 class Signer(models.Model):
     label = models.CharField('A unique label for this signer', max_length=255,
                              unique=True)
     certificate = models.TextField()
     private_key = models.TextField()
+    wwdr_certificate = models.TextField('Apple WWDR intermediate certificate')
     passphrase = models.CharField('Passphrase for the private key', max_length=100,
                                   blank=True, null=True)  # Temporary only - we need a more secure way to store passphrase
 
@@ -172,26 +175,52 @@ class Pass(models.Model):
 
     def sign(self, manifest=None):
         manifest = manifest or self.generate_manifest()
-        buffer = M2Crypto.BIO.MemoryBuffer(manifest)
-        signer = M2Crypto.SMIME.SMIME()
-        key = M2Crypto.BIO.MemoryBuffer(str(self.pass_signer.private_key))
-        cert = M2Crypto.BIO.MemoryBuffer(str(self.pass_signer.certificate))
-        args = [key, cert]
+
+        # TODO: More elegant solution than tempfile.mkstemp()
+        # However, the tempfile.mkstemp() approach allows us to
+        # use more than one key/cert pair rather than adding the
+        # key and cert to the file path and specifying in settings.
+        keyfile = self.write_tempfile(self.pass_signer.private_key)
+        certfile = self.write_tempfile(self.pass_signer.certificate)
+        wwdr_certfile = self.write_tempfile(self.pass_signer.wwdr_certificate)
+        manifest_file = self.write_tempfile(manifest)
+
+        args = SSL_ARGS % {'cert': certfile,
+                           'key': keyfile,
+                           'manifest': manifest_file,
+                           'wwdr_cert': wwdr_certfile}
+
         if self.pass_signer.passphrase:
-            args.append(lambda x: self.pass_signer.passphrase)
-        signer.load_key_bio(*args)
-        p7 = signer.sign(buffer, flags=M2Crypto.SMIME.PKCS7_DETACHED)
-        out = M2Crypto.BIO.MemoryBuffer()
-        p7.write_der(out)
-        signature = out.getvalue()
+            args = '%s -passin pass:"%s"' % (args, self.pass_signer.passphrase)
+        args = args.split()
+
+        p = subprocess.Popen(args, stderr=subprocess.PIPE, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        signature = p.stdout.read()
+
+        for f in (keyfile, certfile, wwdr_certfile, manifest_file):
+            os.remove(f)
+
         return signature
 
-    def zip(self):
+    def write_tempfile(self, data):
+        '''
+        Creates a tempory file and writes to it.
+        Returns the filepath of the file as a string.
+        '''
+        temp_file = tempfile.mkstemp()
+        with open(temp_file[1], 'wb') as f:
+            f.write(data)
+        return temp_file[1]
+
+    def zip(self, manifest=None, signature=None):
+        '''
+        Zips up the pass in pkpass/zip format.
+        '''
         s = StringIO()
         pkpass = zipfile.ZipFile(s, 'a')
-        manifest = self.generate_manifest()
+        manifest = manifest or self.generate_manifest()
         pass_json = self.serialize()
-        signature = self.sign()
+        signature = signature or self.sign()
         pkpass.writestr('manifest.json', manifest)
         pkpass.writestr('pass.json', pass_json)
         pkpass.writestr('signature', signature)
