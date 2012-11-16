@@ -4,13 +4,14 @@ import hashlib
 import zipfile
 from StringIO import StringIO
 import subprocess
-import tempfile
 
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
 import json
 from django.contrib.sites.models import Site
+
+from .utils import write_tempfile
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
@@ -183,10 +184,10 @@ class Pass(models.Model):
         # However, the tempfile.mkstemp() approach allows us to
         # use more than one key/cert pair rather than adding the
         # key and cert to the file path and specifying in settings.
-        keyfile = self.write_tempfile(self.pass_signer.private_key)
-        certfile = self.write_tempfile(self.pass_signer.certificate)
-        wwdr_certfile = self.write_tempfile(self.pass_signer.wwdr_certificate)
-        manifest_file = self.write_tempfile(manifest)
+        keyfile = write_tempfile(self.pass_signer.private_key)
+        certfile = write_tempfile(self.pass_signer.certificate)
+        wwdr_certfile = write_tempfile(self.pass_signer.wwdr_certificate)
+        manifest_file = write_tempfile(manifest)
 
         args = SSL_ARGS % {'cert': certfile,
                            'key': keyfile,
@@ -204,16 +205,6 @@ class Pass(models.Model):
             os.remove(f)
 
         return signature
-
-    def write_tempfile(self, data):
-        '''
-        Creates a tempory file and writes to it.
-        Returns the filepath of the file as a string.
-        '''
-        temp_file = tempfile.mkstemp()
-        with open(temp_file[1], 'wb') as f:
-            f.write(data)
-        return temp_file[1]
 
     def zip(self, manifest=None, signature=None):
         '''
