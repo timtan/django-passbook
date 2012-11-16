@@ -89,6 +89,9 @@ class Pass(models.Model):
                             ('PKTransitTypeGeneric', 'generic'),)
     transit_type = models.CharField(max_length=20, choices=TRANSIT_TYPE_CHOICES, null=True, blank=True)  # Boarding pass only
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def to_dict(self):
         d = {
             'formatVersion': self.format_version,
@@ -361,3 +364,9 @@ class Location(models.Model):
             location['relevantText'] = self.relevant_text
 
         return location
+
+
+class Device(models.Model):
+    push_token = models.CharField(max_length=255)
+    device_library_id = models.CharField(max_length=255, unique=True)
+    passes = models.ManyToManyField(Pass)

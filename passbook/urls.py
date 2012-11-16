@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls.defaults import url, patterns
+from .webservice.resources import Resource, DeviceResource, LogResource
 
-urlpatterns = patterns('passbook.views',
-    url(r'^webservice/$', 'webservice', name='passbook-webservice'),
-    url(r'^pass/(?P<id>\d+)/?$', 'get_pass', name='passbook-get-pass'),
-    url(r'^pass/add/?$', 'add_pass', name='passbook-add-pass'),
+device_resource = DeviceResource.as_view()
+
+urlpatterns = patterns(
+    '',
+
+    url(r'^pass/(?P<id>\d+)/?$', 'passbook.views.get_pass', name='passbook-get-pass'),
+    url(r'^pass/add/?$', 'passbook.views.add_pass', name='passbook-add-pass'),
+
+    url(r'^webservice/$', Resource.as_view(), name='passbook-webservice'),
+
+    url(r'^webservice/(?P<version>\w+)/devices/(?P<device_library_id>\w+)/registrations/(?P<pass_type_id>[\w\._-]+)/(?P<serial_number>\w+)$',
+        device_resource, name='passbook-webservice-device-post'),
+
+    url(r'^webservice/(?P<version>\w+)/devices/(?P<device_library_id>\w+)/registrations/(?P<pass_type_id>[\w\._-]+)$',
+        device_resource, name='passbook-webservice-device-passes'),
+
+    url(r'^webservice/(?P<version>\w+)/log', LogResource.as_view(), name='passbook-webservice-log'),
 )
