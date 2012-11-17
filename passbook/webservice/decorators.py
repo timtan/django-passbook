@@ -12,5 +12,5 @@ def is_authorized(func):
                                    auth_token=authorization).exists():
 
                 return func(request, *args, **kwargs)
-        return HttpResponse(status_code=401)
+        return HttpResponse(status=401)
     return wrapper
