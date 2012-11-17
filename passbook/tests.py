@@ -5,8 +5,9 @@ import zipfile
 from StringIO import StringIO
 
 from django.test import TestCase
+from django.core.urlresolvers import reverse
 
-from .models import Pass, Signer, Barcode
+from .models import Pass, Signer, Barcode, Device
 from .utils import write_tempfile
 
 
@@ -91,3 +92,58 @@ class PassTestCase(TestCase):
     def tearDown(self):
         os.remove(self.keyfile)
         os.remove(self.certfile)
+        self.signer.delete()
+
+
+class WebServiceTest(TestCase):
+    def setUp(self):
+        self._pass = Pass.objects.create(identifier='abc123',
+                                         serial_number='123abc',
+                                         organization_name='django-passbook',
+                                         team_identifier='pass.foo.bar',
+                                         description='desc',
+                                         auth_token='4UT#',
+                                         barcode=Barcode.objects.create(message='1234', format='PKBarcodeFormatPDF417'),
+                                         background_color='rgb(0, 0, 0)',
+                                         type='coupon',
+                                         pass_signer=Signer.objects.create(certificate='abc', private_key='123',
+                                                                           wwdr_certificate='123'))
+
+        self.url = reverse('passbook-webservice-device-post', kwargs={'version': 'v1',
+                                                                      'device_library_id': 'abv123',
+                                                                      'pass_type_id': self._pass.identifier,
+                                                                      'serial_number': self._pass.serial_number})
+
+    def tearDown(self):
+        self._pass.delete()
+
+    def test_is_authorized_decorator_returns_401(self):
+        # the decorator should return a 401 when 'HTTP_AUTHORIZATION' is not in request.META
+        response = self.client.post(self.url, data='{}', content_type='application/json')
+        self.assertEquals(401, response.status_code)
+
+        # the decorator should also return a 401 if the incorrect auth_token is passed in 'HTTP_AUTHORIZATION'
+        response = self.client.post(self.url, data='{}', content_type='application/json',
+                                    HTTP_AUTHORIZATION='ApplePass not a valid auth token')
+        self.assertEquals(401, response.status_code)
+
+    def test_device_register_after_pass_added(self):
+        self.assertEquals(0, Device.objects.count())
+
+        post_data = json.dumps({'pushToken': 'pushToken'})
+        response = self.client.post(self.url, data=post_data, content_type='application/json',
+                                    HTTP_AUTHORIZATION='ApplePass ' + self._pass.auth_token)
+
+        self.assertEquals(200, response.status_code)
+        self.assertEquals(1, Device.objects.count())
+        device = Device.objects.get()
+        self.assertEquals('pushToken', device.push_token)
+        self.assertIn(self._pass, device.passes.all())
+
+    def test_unregister_device_from_pass(self):
+        device = Device.objects.create(push_token='abc', device_library_id='abv123')
+        device.passes.add(self._pass)
+        self.assertIn(self._pass, device.passes.all())
+        response = self.client.delete(self.url, HTTP_AUTHORIZATION='ApplePass ' + self._pass.auth_token)
+        self.assertEquals(200, response.status_code)
+        self.assertNotIn(self._pass, device.passes.all())
