@@ -2,14 +2,15 @@
 
 from django.conf.urls.defaults import url, patterns
 from .webservice.resources import Resource, DeviceResource, LogResource
+from .views import PassView, PassCreationView
 
 device_resource = DeviceResource.as_view()
 
 urlpatterns = patterns(
     '',
 
-    url(r'^pass/(?P<id>\d+)/?$', 'passbook.views.get_pass', name='passbook-get-pass'),
-    url(r'^pass/add/?$', 'passbook.views.add_pass', name='passbook-add-pass'),
+    url(r'^pass/(?P<id>\d+)/?$', PassView.as_view(), name='passbook-get-pass'),
+    url(r'^pass/add/?$', PassCreationView.as_view(), name='passbook-add-pass'),
 
     url(r'^webservice/$', Resource.as_view(), name='passbook-webservice'),
 
