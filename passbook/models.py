@@ -29,7 +29,7 @@ class Signer(models.Model):
                                   blank=True, null=True)  # Temporary only - we need a more secure way to store passphrase
 
     def __unicode__(self):
-        return u'%s' % self.label
+        return self.label
 
 
 class Pass(models.Model):
@@ -269,7 +269,7 @@ class Barcode(models.Model):
         return barcode
 
     def __unicode__(self):
-        return u'Barcode: %s' % self.message
+        return self.message
 
 
 class Field(models.Model):
@@ -333,7 +333,7 @@ class Field(models.Model):
         return field
 
     def __unicode__(self):
-        return u'Field key: %s, label: %s, value: %s' % (self.key, self.label, self.value[:20])
+        return u'key: %s, label: %s, value: %s' % (self.key, self.label, self.value[:20])
 
     class Meta:
         unique_together = ('_pass', 'key')  # Field keys need to be unique per pass
