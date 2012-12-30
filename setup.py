@@ -16,7 +16,7 @@ def _static_files(prefix):
 
 setup(
     name='django-passbook',
-    version='0.5.1', 
+    version='0.5.2', 
     description='djgnao passbook', 
     long_description=long_description,
     author='stephenmuss',
