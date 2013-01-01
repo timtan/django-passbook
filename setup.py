@@ -4,15 +4,6 @@ from setuptools import find_packages
 
 long_description = (open('README.md').read()  )
 
-def _static_files(prefix):
-    return [prefix+'/'+pattern for pattern in [
-        'markitup/*.*',
-        'markitup/sets/*/*.*',
-        'markitup/sets/*/images/*.png',
-        'markitup/skins/*/*.*',
-        'markitup/skins/*/images/*.png',
-        'markitup/templates/*.*'
-    ]]
 
 setup(
     name='django-passbook',
