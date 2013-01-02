@@ -11,13 +11,14 @@ from django.conf import settings
 import json
 from django.contrib.sites.models import Site
 import logging
-logger = logging.getLogger('passbook-model')
 from .utils import write_tempfile
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
 
 SSL_ARGS = '''openssl smime -binary -sign -signer %(cert)s -inkey %(key)s -in %(manifest)s -outform DER -certfile %(wwdr_cert)s'''
+
+logger = logging.getLogger('passbook-model')
 
 
 class Signer(models.Model):
