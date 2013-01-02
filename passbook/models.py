@@ -10,7 +10,8 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 import json
 from django.contrib.sites.models import Site
-
+import logging
+logger = logging.getLogger('passbook-model')
 from .utils import write_tempfile
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
@@ -72,6 +73,7 @@ class Pass(models.Model):
     supress_strip_shine = models.BooleanField('Supress the shine effect of the strip image', default=False)
     logo_text = models.CharField(max_length=255, blank=True, null=True)
 
+    enable_web_service = models.BooleanField("Whether to enable web service", default=False)
     """ Style-Specific Information Keys """
     PASS_TYPES = (('boardingPass', 'boarding pass'),
                   ('coupon', 'coupon'),
@@ -100,10 +102,6 @@ class Pass(models.Model):
             'serialNumber': self.serial_number,
             'teamIdentifier': self.team_identifier,
             'description': self.description,
-            'authenticationToken': self.auth_token,
-            'webServiceURL': '%s://%s%s' % ('http' if getattr(settings, 'DEBUG', False) else 'https',
-                                            Site.objects.get_current().domain,
-                                            reverse('passbook-webservice')),
             'barcode': self.barcode.to_dict(),
             'organizationName': self.organization_name,
             'locations': [location.to_dict() for location in self.locations.all()],
@@ -116,6 +114,19 @@ class Pass(models.Model):
             },
             'backgroundColor': self.background_color
         }
+
+        if self.enable_web_service :
+            auth_token      = self.auth_token
+            web_service_url = '%s://%s%s' % ('http' if getattr(settings, 'DEBUG', False) else 'https',
+                                             Site.objects.get_current().domain,
+                                             reverse('passbook-webservice'))
+
+            logger.debug('web service is added token %s, url %s', auth_token, web_service_url)
+            web_service_extra = {
+                'authenticationToken': auth_token,
+                'webServiceURL': web_service_url,
+            }
+            d.update(web_service_extra)
 
         if self.foreground_color:
             d['foregroundColor'] = self.foreground_color
@@ -198,11 +209,18 @@ class Pass(models.Model):
             args = '%s -passin pass:"%s"' % (args, self.pass_signer.passphrase)
         args = args.split()
 
-        p = subprocess.Popen(args, stderr=subprocess.PIPE, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('openssl args: %s', " ".join(args))
+
+
+        p = subprocess.Popen(" ".join(args), stderr=subprocess.PIPE, stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
         signature = p.stdout.read()
 
         for f in (keyfile, certfile, wwdr_certfile, manifest_file):
             os.remove(f)
+
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug('signature length is  %d', len(signature))
 
         return signature
 
