@@ -34,7 +34,7 @@ class DeviceResource(Resource):
         else:
             response_body['serialNumbers'] = [p.serial_number for p in device.passes.all()]
         status = 200 if response_body['serialNumbers'] else 204
-        return HttpResponse(json.dumps(response_body), status_code=status)
+        return HttpResponse(json.dumps(response_body), status=status)
 
     @method_decorator(is_authorized)
     def post(self, request, **kwargs):
