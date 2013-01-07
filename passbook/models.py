@@ -117,9 +117,18 @@ class Pass(models.Model):
         }
 
         if self.enable_web_service :
+
+            address =  getattr(settings, 'WEBSERVICE_ADDRESS', "")
+            if not address:
+                address = Site.objects.get_current().domain
+                logger.debug('web service address is set from database ')
+            else:
+                logger.debug('')
+
+
             auth_token      = self.auth_token
             web_service_url = '%s://%s%s' % ('http' if getattr(settings, 'DEBUG', False) else 'https',
-                                             Site.objects.get_current().domain,
+                                             address,
                                              reverse('passbook-webservice'))
 
             logger.debug('web service is added token %s, url %s', auth_token, web_service_url)
