@@ -18,7 +18,7 @@ IMAGE_TYPE = '.*\.(png|PNG)$'
 
 SSL_ARGS = '''openssl smime -binary -sign -signer %(cert)s -inkey %(key)s -in %(manifest)s -outform DER -certfile %(wwdr_cert)s'''
 
-logger = logging.getLogger('passbook-model')
+logger = logging.getLogger('passbook')
 
 
 class Signer(models.Model):

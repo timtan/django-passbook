@@ -3,17 +3,16 @@ import uuid
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
-
+from utils import render_pass
 from .models import Pass, Barcode
 
 
 class PassView(View):
+
+
     def get(self, request, *args, **kwargs):
         p = get_object_or_404(Pass, pk=int(kwargs.get('id')))
-        response = HttpResponse(mimetype='application/vnd.apple.pkpass')
-        response['Content-Disposition'] = 'attachment; filename=%s.pkpass' % p.type
-        z = p.zip()
-        response.write(z)
+        response = render_pass(p)
         return response
 
 

@@ -1,4 +1,5 @@
 import tempfile
+from django.http import HttpResponse
 
 
 def write_tempfile(data):
@@ -10,3 +11,11 @@ def write_tempfile(data):
     with open(temp_file[1], 'wb') as f:
         f.write(data)
     return temp_file[1]
+
+
+def render_pass( p):
+    response = HttpResponse(mimetype='application/vnd.apple.pkpass')
+    response['Content-Disposition'] = 'attachment; filename=%s.pkpass' % p.type
+    z = p.zip()
+    response.write(z)
+    return response
