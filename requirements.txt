@@ -1,0 +1,1 @@
+-e git+https://github.com/timtan/PyAPNs@d77d64b49c75818469e4ee229afaffe254ae539e#egg=apns-dev
