@@ -195,10 +195,13 @@ class Pass(models.Model):
                 low_res_path = path.replace('@2x', '')
                 low_res_name = image_name.replace('@2x', '')
                 for name, path in ((image_name, path), (low_res_name, low_res_path)):
-                    with open(path) as file:
-                        sha = hashlib.sha1()
-                        sha.update(file.read())
-                        manifest[name] = sha.hexdigest()
+                    try:
+                        with open(path) as file:
+                            sha = hashlib.sha1()
+                            sha.update(file.read())
+                            manifest[name] = sha.hexdigest()
+                    except IOError as e:
+                        logger.warn('file %s not available', path)
         return json.dumps(manifest)
 
     def sign(self, manifest=None):
