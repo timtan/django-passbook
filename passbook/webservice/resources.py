@@ -1,5 +1,5 @@
 import json
-import datetime
+import datetime, time
 import dateutil.parser
 
 from django.views.generic import View
@@ -7,10 +7,15 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
+from django.conf import settings
 
 from passbook.models import Pass, Device
 from .decorators import is_authorized
 
+from ..utils import render_pass
+import logging
+
+logger = logging.getLogger('passbook')
 
 class Resource(View):
     @csrf_exempt
@@ -26,6 +31,8 @@ class DeviceResource(Resource):
 
     def get(self, request, **kwargs):
         device = get_object_or_404(Device, device_library_id=kwargs.get('device_library_id'))
+
+        #Should Be Retrieve from Model
         response_body = {'lastUpdated': datetime.datetime.now().isoformat()}
 
         if 'tag' in request.GET:
@@ -63,7 +70,26 @@ class PassResource(Resource):
     model = Pass
 
     def get(self, request, **kwargs):
-        return HttpResponse('')
+
+        serial_number = kwargs.get('serial_number')
+        authorization = request.META.get('HTTP_AUTHORIZATION')
+
+
+        logger.info('access with serial number: %s authorization: %s', serial_number, authorization)
+
+        if serial_number is  None or authorization is  None:
+            return HttpResponse(status=404)
+
+        authorization = authorization.replace('ApplePass', '').strip()
+
+        if not Pass.objects.filter(serial_number=serial_number,
+                auth_token=authorization).exists():
+            logger.warn('Pass not found with the corresponding auth and serial')
+
+            return HttpResponse(status=404)
+        headers = {'last-modified' : str(time.time()) }
+        return render_pass(Pass.objects.filter(serial_number=serial_number,
+                    auth_token=authorization)[0], **headers)
 
 
 class LogResource(Resource):
