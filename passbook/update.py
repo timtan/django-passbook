@@ -12,9 +12,8 @@ class PassbookApnChannel(object):
         self.__apn      = APNs(use_sandbox=False, cert_file=self.__certfile, key_file=self.__keyfile)
 
     def __del__(self):
-        super(PassbookApnChannel, self).__del__()
         for file in (self.__keyfile, self.__certfile):
-            os.remove(file)
+            pass #os.remove(file) # Cannot all it in destructor...
 
     def notify(self, token):
         self.__apn.gateway_server.send_notification(token, PassbookApnChannel.__payload)
