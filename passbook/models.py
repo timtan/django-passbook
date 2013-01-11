@@ -11,7 +11,7 @@ from django.conf import settings
 import json
 from django.contrib.sites.models import Site
 import logging
-from .utils import write_tempfile
+from .utils import write_tempfile, to_time_stamp
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
@@ -143,6 +143,9 @@ class Pass(models.Model):
 
         if self.type == 'boardingPass':
             d['boardingPass']['transitType'] = self.transit_type
+
+        if self.relevant_date :
+            d['relevantDate'] = to_time_stamp(self.relevant_date)
 
         optional_images = (('logo', self.logo),
                            ('thumbnailImage', self.thumbnail_image),
