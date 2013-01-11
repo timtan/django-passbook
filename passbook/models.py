@@ -121,9 +121,9 @@ class Pass(models.Model):
             address =  getattr(settings, 'WEBSERVICE_ADDRESS', "")
             if not address:
                 address = Site.objects.get_current().domain
-                logger.debug('web service address is set from database ')
+                logger.info('web service address is set from database %s', address)
             else:
-                logger.debug('')
+                logger.info('web service address is set from config: %s', address)
 
 
             auth_token      = self.auth_token
