@@ -1,11 +1,11 @@
-from .models import Field, Pass, Location, Barcode
+from .models import Field, Pass, Location, Barcode, Signer
 from .update import Channels
 from django.db.models.signals import post_save
 import logging
 
 logger = logging.getLogger('passbook')
 
-channels = Channels(Pass.objects.all())
+channels = Channels(Signer.objects.all())
 
 
 def notifyDevices(_pass):
