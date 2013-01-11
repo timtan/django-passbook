@@ -7,7 +7,7 @@ long_description = (open('README.md').read()  )
 
 setup(
     name='django-passbook',
-    version='0.5.4', 
+    version='0.5.5',
     description='djgnao passbook', 
     long_description=long_description,
     author='stephenmuss',
