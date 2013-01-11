@@ -13,9 +13,11 @@ def write_tempfile(data):
     return temp_file[1]
 
 
-def render_pass( p):
+def render_pass(p, **kwargs):
     response = HttpResponse(mimetype='application/vnd.apple.pkpass')
     response['Content-Disposition'] = 'attachment; filename=%s.pkpass' % p.type
+    for header in kwargs:
+        response[header] = kwargs[header]
     z = p.zip()
     response.write(z)
     return response
