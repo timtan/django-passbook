@@ -1,7 +1,7 @@
 from .utils import write_tempfile
 from apns import APNs, PassbookPayload
-import os
-
+import logging
+logger = logging.getLogger('passbook.signal')
 class PassbookApnChannel(object):
 
     __payload  = PassbookPayload()
@@ -28,4 +28,7 @@ class Channels:
             self.channels[signer.label] = PassbookApnChannel(signer.private_key, signer.certificate)
 
     def notify(self, identifier, token):
-        self.channels[identifier].notify(token)
+        try:
+            self.channels[identifier].notify(token)
+        except KeyError as e:
+            logger.error('identifier is not available in signer table. it is because pass label and identifier not the same')
