@@ -1,15 +1,21 @@
-__author__ = 'tim'
 from .models import Field, Pass, Location, Barcode
+from .update import Channels
 from django.db.models.signals import post_save
-
 import logging
+
 logger = logging.getLogger('passbook')
+
+channels = Channels(Pass.objects.all())
 
 
 def notifyDevices(_pass):
     devices = _pass.device_set.all()
+    identifier = _pass.identifier
+    logger.debug('enter notification, identifier: %s', identifier)
+
     for device in devices:
-        logger.debug('push token is %s', device.push_token)
+        logger.debug('enter notification, push token: %s', device.push_token)
+        channels.notify(identifier, device.push_token)
 
 def fieldChangeHandler(sender, instance, created, **kwargs):
 
