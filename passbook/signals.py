@@ -7,6 +7,10 @@ logger = logging.getLogger('passbook')
 
 channels = Channels(Signer.objects.all())
 
+def updatePassDate(_pass):
+    logger.debug('updated related pass')
+    _pass.description = _pass.description  # For Update Time, I change to auto update the field updated_at
+    _pass.save()
 
 def notifyDevices(_pass):
     devices = _pass.device_set.all()
@@ -19,12 +23,13 @@ def notifyDevices(_pass):
 
 def fieldChangeHandler(sender, instance, created, **kwargs):
 
+
     if sender == Field:
         _pass = instance._pass
-        notifyDevices(_pass)
+        updatePassDate(_pass)
     elif sender in (Location, Barcode):
         for _pass in instance.passes.all():
-            notifyDevices(_pass)
+            updatePassDate(_pass)
     elif sender == Pass:
         notifyDevices(instance)
 
