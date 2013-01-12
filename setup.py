@@ -16,4 +16,5 @@ setup(
     packages=['passbook', ],
     zip_safe=False,
     include_package_data=True,
-    package_data={'passbook': ['templates/passbook/*']} )
+    package_data={'passbook': ['templates/passbook/*']} 
+)
