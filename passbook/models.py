@@ -96,6 +96,12 @@ class Pass(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+    images = (('background_image', 'background@2x.png'),
+              ('icon', 'icon@2x.png'),
+              ('thumbnail_image', 'thumbnail@2x.png'),
+              ('strip_image', 'strip@2x.png'),
+              ('logo', 'logo@2x.png'))
     def to_dict(self):
         d = {
             'formatVersion': self.format_version,
@@ -177,11 +183,8 @@ class Pass(models.Model):
         The value of each key is the SHA-1 hash of that file’s contents.
         """
         # bundle = bundle or self.generate_bundle()
-        images = (('background_image', 'background@2x.png'),
-                  ('icon', 'icon@2x.png'),
-                  ('thumbnail_image', 'thumbnail@2x.png'),
-                  ('strip_image', 'strip@2x.png'),
-                  ('logo', 'logo@2x.png'))
+        logger.debug('enter manifest generation process of Pass model')
+
 
         sha = hashlib.sha1()
         sha.update(self.serialize())
@@ -189,7 +192,7 @@ class Pass(models.Model):
         manifest = {
             'pass.json': sha.hexdigest()
         }
-        for attr, image_name in images:
+        for attr, image_name in Pass.images:
             path = getattr(self, attr)
             if path is not None and path != '':
                 low_res_path = path.replace('@2x', '')
@@ -200,6 +203,7 @@ class Pass(models.Model):
                             sha = hashlib.sha1()
                             sha.update(file.read())
                             manifest[name] = sha.hexdigest()
+                            logger.debug('file %s added', path)
                     except IOError as e:
                         logger.warn('file %s not available', path)
         return json.dumps(manifest)
@@ -244,6 +248,7 @@ class Pass(models.Model):
         '''
         Zips up the pass in pkpass/zip format.
         '''
+        logger.debug('enter zip process of Pass model')
         s = StringIO()
         pkpass = zipfile.ZipFile(s, 'a')
         manifest = manifest or self.generate_manifest()
@@ -253,20 +258,21 @@ class Pass(models.Model):
         pkpass.writestr('pass.json', pass_json)
         pkpass.writestr('signature', signature)
 
-        images = (('background_image', 'background@2x.png'),
-                  ('icon', 'icon@2x.png'),
-                  ('thumbnail_image', 'thumbnail@2x.png'),
-                  ('strip_image', 'strip@2x.png'),
-                  ('logo', 'logo@2x.png'))
 
-        for attr, image_name in images:
+
+        for attr, image_name in Pass.images:
             path = getattr(self, attr)
             if path is not None and path != '':
                 low_res_path = path.replace('@2x', '')
                 low_res_name = image_name.replace('@2x', '')
                 for name, path in ((image_name, path), (low_res_name, low_res_path)):
-                    with open(path) as file:
-                        pkpass.writestr(name, file.read())
+                    try:
+                        with open(path) as file:
+                            pkpass.writestr(name, file.read())
+                            logger.debug('file %s added', path)
+
+                    except IOError as e:
+                        logger.warn('file %s not available', path)
 
         for file in pkpass.filelist:
             file.create_system = 0
