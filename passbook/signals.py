@@ -5,17 +5,24 @@ from django.db.utils import DatabaseError
 import logging
 
 logger = logging.getLogger('passbook')
-try:
-    channels = Channels(Signer.objects.all())
-except DatabaseError as e:
-    logger.warn('signer table not available, it is safe if you see the message as first start up ')
+
 
 def updatePassDate(_pass):
     logger.debug('updated related pass')
     _pass.description = _pass.description  # For Update Time, I change to auto update the field updated_at
     _pass.save()
 
+channels = None
 def notifyDevices(_pass):
+    global channels
+    if not channels:
+
+        try:
+            channels = Channels(Signer.objects.all())
+        except DatabaseError as e:
+            logger.warn('signer table not available, it is safe if you see the message as first start up ')
+
+
     devices = _pass.device_set.all()
     identifier = _pass.identifier
     logger.debug('enter notification, identifier: %s', identifier)
