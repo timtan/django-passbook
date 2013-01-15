@@ -42,12 +42,12 @@ class Pass(models.Model):
     identifier = models.CharField(max_length=255)
     serial_number = models.CharField(max_length=255)
     # identifier and serial number should be unique together.
-    organization_name = models.CharField(max_length=255)
+    organization_name = models.CharField(max_length=255, default="")
     team_identifier = models.CharField(max_length=255)
     # Brief description of the pass, used by the iOS accessibility technologies.
     # Don’t try to include all of the data on the pass in its description,
     # just include enough detail to distinguish passes of the same type.
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, default="")
 
     # Web service keys
     auth_token = models.CharField(max_length=255)
