@@ -5,12 +5,13 @@ from django.db.utils import DatabaseError
 import logging
 
 logger = logging.getLogger('passbook')
-
+###TODO implement an explicit notification behavior
 
 def updatePassDate(_pass):
-    logger.debug('updated related pass')
-    _pass.description = _pass.description  # For Update Time, I change to auto update the field updated_at
-    _pass.save()
+    pass
+#    logger.debug('updated related pass')
+#    _pass.description = _pass.description  # For Update Time, I change to auto update the field updated_at
+#    _pass.save()
 
 channels = None
 def notifyDevices(_pass):
@@ -25,11 +26,12 @@ def notifyDevices(_pass):
 
     devices = _pass.device_set.all()
     identifier = _pass.identifier
-    logger.debug('enter notification, identifier: %s', identifier)
+    #logger.debug('enter notification, identifier: %s', identifier)
 
     for device in devices:
-        logger.debug('enter notification, push token: %s', device.push_token)
-        channels.notify(identifier, device.push_token)
+        pass
+        #logger.debug('enter notification, push token: %s', device.push_token)
+        #channels.notify(identifier, device.push_token)
 
 def fieldChangeHandler(sender, instance, created, **kwargs):
 
