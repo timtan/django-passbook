@@ -7,6 +7,11 @@ from utils import render_pass
 from .models import Pass, Barcode
 
 
+class UpateView(View):
+    def get(self, request, pk):
+        p = get_object_or_404(Pass, pk=int(pk))
+        p.notify()
+
 class PassView(View):
 
 
