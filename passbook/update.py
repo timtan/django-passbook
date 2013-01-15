@@ -19,16 +19,24 @@ class PassbookApnChannel(object):
         self.__apn.gateway_server.send_notification(token, PassbookApnChannel.__payload)
 
 
-class Channels:
+class __Channels:
     def __init__(self, signers):
 
         self.channels = {}
-
         for signer in signers:
             self.channels[signer.label] = PassbookApnChannel(signer.private_key, signer.certificate)
 
     def notify(self, identifier, token):
         try:
             self.channels[identifier].notify(token)
+            logger.debug('notifier fire notification to token(%s)', token)
         except KeyError as e:
             logger.error('identifier is not available in signer table. it is because pass label and identifier not the same')
+
+__channels = None
+def getChannels():
+    global __channels
+    if not __channels :
+        from . models import Signer
+        __channels = __Channels(Signer.objects.all())
+    return __channels

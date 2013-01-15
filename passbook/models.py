@@ -12,6 +12,8 @@ import json
 from django.contrib.sites.models import Site
 import logging
 from .utils import write_tempfile, to_time_stamp
+from .signals import pass_update
+
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
@@ -279,6 +281,13 @@ class Pass(models.Model):
         pkpass.close()
         s.seek(0)
         return s.read()
+    def notify(self):
+        logger.debug('enter notification')
+        self.description = self.description
+        self.save()
+        for device in self.device_set.all():
+            logger.debug('notify identifier(%s), token(%s)', self.identifier, device.push_token)
+            pass_update.send( sender=self, identifier=self.identifier, token=device.push_token)
 
     def __unicode__(self):
         return u'%s %s' % (self.type, self.serial_number)
