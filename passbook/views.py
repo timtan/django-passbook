@@ -11,7 +11,7 @@ class UpateView(View):
     def get(self, request, pk):
         p = get_object_or_404(Pass, pk=int(pk))
         p.notify()
-
+        return HttpResponse(status=200)
 class PassView(View):
 
 
