@@ -17,6 +17,6 @@ def notify_device(sender, identifier, token, **kwarg):
 
 
 
-if not getattr(settings, 'IN_UNIT_TEST',False):
+if not getattr(settings, 'TESTING',False):
     pass_update.connect(notify_device)
 
