@@ -13,7 +13,16 @@ from .utils import write_tempfile
 
 SSL_CMD = """openssl req -x509 -nodes -days 365 -subj /C=AU/ST=NSW/L=Sydney/CN=www.example.com -newkey rsa:1024 -keyout %s -out %s"""
 
+class UpdateTest(TestCase):
 
+    def setUp(self):
+        pass
+
+
+    def test_UPDATE_NOT_FOUND_PAGE(self):
+        url = reverse('passbook-update-pass', args=['999'])
+        response = self.client.get(url)
+        assert response.status_code == 404
 class PassTestCase(TestCase):
     '''
     Test the Pass class functionality.
