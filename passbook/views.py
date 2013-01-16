@@ -7,12 +7,12 @@ from utils import render_pass
 from .models import Pass, Barcode
 
 
-class UpateView(DetailView):
+class UpdateView(DetailView):
     model        = Pass
     template_name = 'passbook/admin/notification_updated.html'
     context_object_name = 'pass'
     def get_object(self):
-        object = super(UpateView, self).get_object()
+        object = super(UpdateView, self).get_object()
         object.notify()
         return object
 
