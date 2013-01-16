@@ -2,16 +2,20 @@ import uuid
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
-from django.views.generic import View
+from django.views.generic import View, DetailView
 from utils import render_pass
 from .models import Pass, Barcode
 
 
-class UpateView(View):
-    def get(self, request, pk):
-        p = get_object_or_404(Pass, pk=int(pk))
-        p.notify()
-        return HttpResponse(status=200)
+class UpateView(DetailView):
+    model        = Pass
+    template_name = 'passbook/admin/notification_updated.html'
+    context_object_name = 'pass'
+    def get_object(self):
+        object = super(UpateView, self).get_object()
+        object.notify()
+        return object
+
 class PassView(View):
 
 
