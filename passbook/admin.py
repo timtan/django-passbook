@@ -1,5 +1,5 @@
 from django.contrib import admin
-from passbook.models import Pass, Field, Location, Barcode, Signer
+from passbook.models import Pass, Field, Location, Barcode, Signer, Device
 
 
 class PassAdmin(admin.ModelAdmin):
@@ -31,3 +31,5 @@ admin.site.register(Field, FieldAdmin)
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Barcode, BarcodeAdmin)
 admin.site.register(Signer)
+admin.site.register(Device)
+
