@@ -314,7 +314,7 @@ class Barcode(models.Model):
             'messageEncoding': self.encoding
         }
         if self.alt_text is not None:
-            barcode['alternativeText'] = self.alt_text
+            barcode['altText'] = self.alt_text
         return barcode
 
     def __unicode__(self):
@@ -382,7 +382,7 @@ class Field(models.Model):
         return field
 
     def __unicode__(self):
-        return u'key: %s, label: %s, value: %s' % (self.key, self.label, self.value[:20])
+        return u'key: %s, label: %s, value: %s field_type %s' % (self.key, self.label, self.value[:20], self.field_type)
 
     class Meta:
         unique_together = ('_pass', 'key')  # Field keys need to be unique per pass
