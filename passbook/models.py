@@ -56,7 +56,7 @@ class Pass(models.Model):
     locations = models.ManyToManyField('Location', related_name='passes', blank=True, null=True)
     relevant_date = models.DateTimeField(blank=True, null=True)
 
-    barcode = models.ForeignKey('Barcode', related_name='passes')
+    barcode = models.ForeignKey('Barcode', related_name='passes', blank=True, null=True)
     background_color = models.CharField(max_length=20)
     foreground_color = models.CharField(max_length=20, blank=True, null=True)
     label_color = models.CharField(max_length=20, blank=True, null=True)
@@ -111,7 +111,6 @@ class Pass(models.Model):
             'serialNumber': self.serial_number,
             'teamIdentifier': self.team_identifier,
             'description': self.description,
-            'barcode': self.barcode.to_dict(),
             'organizationName': self.organization_name,
             'locations': [location.to_dict() for location in self.locations.all()],
             self.type: {
@@ -123,7 +122,8 @@ class Pass(models.Model):
             },
             'backgroundColor': self.background_color
         }
-
+        if self.barcode:
+            d['barcode'] = self.barcode.to_dict()
         if self.enable_web_service :
 
             address =  getattr(settings, 'WEBSERVICE_ADDRESS', "")
@@ -335,7 +335,13 @@ class Field(models.Model):
 
     field_type = models.CharField(max_length=20, choices=FIELD_TYPES)
     priority = models.PositiveSmallIntegerField('Field priority (0 is highest priority)', default=0)
-    text_alignment = models.CharField(max_length=20, blank=True, null=True)
+
+    ALIGNMENT_TYPE = (('PKTextAlignmentLeft', 'PKTextAlignmentLeft'),
+                      ('PKTextAlignmentCenter', 'PKTextAlignmentCenter'),
+                      ('PKTextAlignmentRight', 'PKTextAlignmentRight'),
+                      ('PKTextAlignmentNatural', 'PKTextAlignmentNatural'))
+
+    text_alignment = models.CharField(max_length=22, blank=True, null=True, choices=ALIGNMENT_TYPE)
     change_message = models.CharField(max_length=255, blank=True, null=True)
 
     # Allow date/time styles to be defined if value is a date or time.
