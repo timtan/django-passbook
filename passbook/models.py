@@ -68,9 +68,9 @@ class Pass(models.Model):
                     'null': True,
                     'blank': True}
 
-    logo = models.FilePathField('The image displayed on the front of the pass', **IMAGE_KWARGS)
+    logo = models.FilePathField('(logo) The image displayed on the front of the pass', **IMAGE_KWARGS)
     icon = models.FilePathField('The pass\'s icon', path=IMAGE_PATH, recursive=True, match=IMAGE_TYPE)
-    thumbnail_image = models.FilePathField('An additional image displayed on the front of the pass', **IMAGE_KWARGS)
+    thumbnail_image = models.FilePathField('(thumbnail) An additional image displayed on the front of the pass', **IMAGE_KWARGS)
     background_image = models.FilePathField('The image displayed as the background of the front of the pass', **IMAGE_KWARGS)
     strip_image = models.FilePathField('The image displayed as a strip behind the primary fields on the front of the pass', **IMAGE_KWARGS)
     supress_strip_shine = models.BooleanField('Supress the shine effect of the strip image', default=False)
@@ -120,7 +120,8 @@ class Pass(models.Model):
                 'auxiliaryFields': [field.to_dict() for field in self.fields.filter(field_type='auxiliary').order_by('priority')],
                 'backFields': [field.to_dict() for field in self.fields.filter(field_type='back').order_by('priority')]
             },
-            'backgroundColor': self.background_color
+            'backgroundColor': self.background_color,
+            'labelColor': self.label_color,
         }
         if self.barcode:
             d['barcode'] = self.barcode.to_dict()
@@ -324,7 +325,7 @@ class Barcode(models.Model):
 class Field(models.Model):
     _pass = models.ForeignKey(Pass, related_name='fields')
     key = models.CharField(max_length=255)
-    label = models.CharField(max_length=255)
+    label = models.CharField(max_length=255, blank=True, default="")
     value = models.TextField()
 
     FIELD_TYPES = (('header', 'header field'),
