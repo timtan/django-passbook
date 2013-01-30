@@ -107,7 +107,7 @@ class Pass(models.Model):
     def to_dict(self):
         d = {
             'formatVersion': self.format_version,
-            'passTypeIdentifier': self.identifier,
+            'passTypeIdentifier': self.pass_signer.label,
             'serialNumber': self.serial_number,
             'teamIdentifier': self.team_identifier,
             'description': self.description,
