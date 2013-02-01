@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
-import os
-import hashlib
-import zipfile
+import os, hashlib, zipfile, subprocess, json, logging
 from StringIO import StringIO
-import subprocess
 
 from django.db import models
+
 from django.core.urlresolvers import reverse
 from django.conf import settings
-import json
 from django.contrib.sites.models import Site
-import logging
 from .utils import write_tempfile, to_time_stamp
 from .signals import pass_update
 
@@ -108,7 +104,7 @@ class Pass(models.Model):
         d = {
             'formatVersion': self.format_version,
             'passTypeIdentifier': self.pass_signer.label,
-            'serialNumber': self.serial_number,
+            'serialNumber': self.pk,
             'teamIdentifier': self.team_identifier,
             'description': self.description,
             'organizationName': self.organization_name,
@@ -323,7 +319,7 @@ class Barcode(models.Model):
 
 
 class Field(models.Model):
-    _pass = models.ForeignKey(Pass, related_name='fields')
+    _pass = models.ForeignKey(Pass, related_name='fields', null=True, blank=True)
     key = models.CharField(max_length=255)
     label = models.CharField(max_length=255, blank=True, default="")
     value = models.TextField()
