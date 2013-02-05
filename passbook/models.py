@@ -36,7 +36,9 @@ class Pass(models.Model):
     # Standard keys
     format_version = 1
     identifier = models.CharField(max_length=255)
-    serial_number = models.CharField(max_length=255)
+
+    # will be deprecate, pk is enough
+    serial_number = models.CharField(max_length=255, blank=True, null=True)
     # identifier and serial number should be unique together.
     organization_name = models.CharField(max_length=255, default="", blank=True, null=True)
     team_identifier = models.CharField(max_length=255)
@@ -100,11 +102,15 @@ class Pass(models.Model):
               ('thumbnail_image', 'thumbnail@2x.png'),
               ('strip_image', 'strip@2x.png'),
               ('logo', 'logo@2x.png'))
+
+    def get_serial_number(self):
+        return self.serial_number if self.serial_number else str(self.pk)
+
     def to_dict(self):
         d = {
             'formatVersion': self.format_version,
             'passTypeIdentifier': self.pass_signer.label,
-            'serialNumber': self.pk,
+            'serialNumber': self.get_serial_number(),
             'teamIdentifier': self.team_identifier,
             'description': self.description,
             'organizationName': self.organization_name,
@@ -287,7 +293,7 @@ class Pass(models.Model):
             pass_update.send( sender=self, identifier=self.identifier, token=device.push_token)
 
     def __unicode__(self):
-        return u'%s %s' % (self.type, self.serial_number)
+        return u'%s %s %s' % (self.identifier, self.type, self.serial_number if self.serial_number else str(self.pk))
 
     class Meta:
         verbose_name_plural = 'passes'
