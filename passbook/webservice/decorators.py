@@ -9,7 +9,7 @@ def is_authorized(func):
         authorization = request.META.get('HTTP_AUTHORIZATION')
         if serial_number is not None and authorization is not None:
             authorization = authorization.replace('ApplePass', '').strip()
-            if Pass.objects.filter(pk=serial_number,
+            if Pass.objects.filter(pk=int(serial_number),
                                    auth_token=authorization).exists():
 
                 return func(request, *args, **kwargs)
