@@ -23,13 +23,13 @@ class Migration(SchemaMigration):
         db.create_table('passbook_pass', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('identifier', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('serial_number', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('serial_number', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
             ('organization_name', self.gf('django.db.models.fields.CharField')(default='', max_length=255, null=True, blank=True)),
             ('team_identifier', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('description', self.gf('django.db.models.fields.CharField')(default='', max_length=255, null=True, blank=True)),
             ('auth_token', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('relevant_date', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('barcode', self.gf('django.db.models.fields.related.ForeignKey')(related_name='passes', to=orm['passbook.Barcode'])),
+            ('barcode', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='passes', null=True, to=orm['passbook.Barcode'])),
             ('background_color', self.gf('django.db.models.fields.CharField')(max_length=20)),
             ('foreground_color', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
             ('label_color', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
@@ -70,13 +70,13 @@ class Migration(SchemaMigration):
         # Adding model 'Field'
         db.create_table('passbook_field', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('_pass', self.gf('django.db.models.fields.related.ForeignKey')(related_name='fields', to=orm['passbook.Pass'])),
+            ('_pass', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='fields', null=True, to=orm['passbook.Pass'])),
             ('key', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('label', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('label', self.gf('django.db.models.fields.CharField')(default='', max_length=255, blank=True)),
             ('value', self.gf('django.db.models.fields.TextField')()),
             ('field_type', self.gf('django.db.models.fields.CharField')(max_length=20)),
             ('priority', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
-            ('text_alignment', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
+            ('text_alignment', self.gf('django.db.models.fields.CharField')(max_length=22, null=True, blank=True)),
             ('change_message', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
             ('date_style', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
             ('time_style', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
@@ -96,6 +96,7 @@ class Migration(SchemaMigration):
             ('latitude', self.gf('django.db.models.fields.FloatField')()),
             ('altitude', self.gf('django.db.models.fields.FloatField')(null=True)),
             ('relevant_text', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('key', self.gf('django.db.models.fields.CharField')(default='empty', max_length=255)),
         ))
         db.send_create_signal('passbook', ['Location'])
 
@@ -163,7 +164,7 @@ class Migration(SchemaMigration):
         },
         'passbook.field': {
             'Meta': {'unique_together': "(('_pass', 'key'),)", 'object_name': 'Field'},
-            '_pass': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'fields'", 'to': "orm['passbook.Pass']"}),
+            '_pass': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'fields'", 'null': 'True', 'to': "orm['passbook.Pass']"}),
             'change_message': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'currency_code': ('django.db.models.fields.CharField', [], {'max_length': '5', 'null': 'True', 'blank': 'True'}),
             'date_style': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
@@ -171,10 +172,10 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_relative': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'label': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'label': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'}),
             'number_style': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'priority': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
-            'text_alignment': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
+            'text_alignment': ('django.db.models.fields.CharField', [], {'max_length': '22', 'null': 'True', 'blank': 'True'}),
             'time_style': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'value': ('django.db.models.fields.TextField', [], {})
         },
@@ -182,6 +183,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Location'},
             'altitude': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'key': ('django.db.models.fields.CharField', [], {'default': "'empty'", 'max_length': '255'}),
             'latitude': ('django.db.models.fields.FloatField', [], {}),
             'longitude': ('django.db.models.fields.FloatField', [], {}),
             'relevant_text': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'})
@@ -191,7 +193,7 @@ class Migration(SchemaMigration):
             'auth_token': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'background_color': ('django.db.models.fields.CharField', [], {'max_length': '20'}),
             'background_image': ('django.db.models.fields.FilePathField', [], {'recursive': 'True', 'max_length': '100', 'blank': 'True', 'path': "'/Users/tim/WorkCode/passbook_service/opass/media/passbook'", 'null': 'True', 'match': "'.*\\\\.(png|PNG)$'"}),
-            'barcode': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'passes'", 'to': "orm['passbook.Barcode']"}),
+            'barcode': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'passes'", 'null': 'True', 'to': "orm['passbook.Barcode']"}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'enable_web_service': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -206,7 +208,7 @@ class Migration(SchemaMigration):
             'organization_name': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'pass_signer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['passbook.Signer']"}),
             'relevant_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'serial_number': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'serial_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'strip_image': ('django.db.models.fields.FilePathField', [], {'recursive': 'True', 'max_length': '100', 'blank': 'True', 'path': "'/Users/tim/WorkCode/passbook_service/opass/media/passbook'", 'null': 'True', 'match': "'.*\\\\.(png|PNG)$'"}),
             'supress_strip_shine': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'team_identifier': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
