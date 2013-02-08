@@ -38,9 +38,9 @@ class DeviceResource(Resource):
         passUpdateSince = 'passesUpdatedSince'
         if passUpdateSince in request.GET:
             updated_since = dateutil.parser.parse(request.GET[passUpdateSince])
-            response_body['serialNumbers'] = [p.serial_number for p in device.passes.filter(updated_at__gte=updated_since)]
+            response_body['serialNumbers'] = [p.pk for p in device.passes.filter(updated_at__gte=updated_since)]
         else:
-            response_body['serialNumbers'] = [p.serial_number for p in device.passes.all()]
+            response_body['serialNumbers'] = [p.pk for p in device.passes.all()]
         status = 200 if response_body['serialNumbers'] else 204
 
         logger.debug('response body: %s', response_body)
@@ -49,7 +49,7 @@ class DeviceResource(Resource):
     @method_decorator(is_authorized)
     def post(self, request, **kwargs):
         '''Registering a Device to Receive Push Notifications for a Pass'''
-        _pass = get_object_or_404(Pass, serial_number=kwargs.get('serial_number'))
+        _pass = get_object_or_404(Pass, pk=int(kwargs.get('serial_number')))
         data = json.loads(request.body)
         push_token = data.get('pushToken')
         device, created = self.model.objects.get_or_create(push_token=push_token,
@@ -62,7 +62,7 @@ class DeviceResource(Resource):
     @method_decorator(is_authorized)
     def delete(self, request, **kwargs):
         p = get_object_or_404(Pass, identifier=kwargs['pass_type_id'],
-                              serial_number=kwargs['serial_number'])
+            pk=int(kwargs['serial_number']))
 
         device = get_object_or_404(Device, device_library_id=kwargs['device_library_id'])
         if p in device.passes.all():
@@ -76,24 +76,24 @@ class PassResource(Resource):
     def get(self, request, **kwargs):
         """Getting the Latest Version of a Pass"""
 
-        serial_number = kwargs.get('serial_number')
+        pk = int(kwargs.get('serial_number'))
         authorization = request.META.get('HTTP_AUTHORIZATION')
 
 
-        logger.info('access with serial number: %s authorization: %s', serial_number, authorization)
+        logger.info('access with serial number: %d authorization: %s', pk, authorization)
 
-        if serial_number is  None or authorization is  None:
+        if pk is  None or authorization is  None:
             return HttpResponse(status=404)
 
         authorization = authorization.replace('ApplePass', '').strip()
 
-        if not Pass.objects.filter(serial_number=serial_number,
+        if not Pass.objects.filter(pk=pk,
                 auth_token=authorization).exists():
             logger.warn('Pass not found with the corresponding auth and serial')
 
             return HttpResponse(status=404)
         headers = {'last-modified' : str(time.time()) }
-        return render_pass(Pass.objects.filter(serial_number=serial_number,
+        return render_pass(Pass.objects.filter(pk=pk,
                     auth_token=authorization)[0], **headers)
 
 
