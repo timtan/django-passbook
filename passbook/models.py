@@ -345,7 +345,7 @@ class Field(models.Model):
                       ('PKTextAlignmentNatural', 'PKTextAlignmentNatural'))
 
     text_alignment = models.CharField(max_length=22, blank=True, null=True, choices=ALIGNMENT_TYPE)
-    change_message = models.CharField(max_length=255, blank=True, null=True)
+    change_message = models.CharField(max_length=255, blank=True, null=True, default="%@")
 
     # Allow date/time styles to be defined if value is a date or time.
     DATE_STYLES = (('PKDateStyleNone', 'PKDateStyleNone'),
