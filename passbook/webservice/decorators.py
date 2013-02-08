@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from passbook.models import Pass
-
+import logging
+logger = logging.getLogger('passbook')
 
 def is_authorized(func):
     def wrapper(request, *args, **kwargs):
@@ -12,5 +13,6 @@ def is_authorized(func):
                                    auth_token=authorization).exists():
 
                 return func(request, *args, **kwargs)
+        logger.debug('un authorized in passbook %s', authorization)
         return HttpResponse(status=401)
     return wrapper
