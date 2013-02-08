@@ -1,7 +1,7 @@
 import subprocess
 import os
 import json
-import zipfile
+import zipfile, logging
 from StringIO import StringIO
 
 from django.test import TestCase
@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from .models import Pass, Signer, Barcode, Device
 from .utils import write_tempfile
 
+logger = logging.getLogger('passbook')
 
 SSL_CMD = """openssl req -x509 -nodes -days 365 -subj /C=AU/ST=NSW/L=Sydney/CN=www.example.com -newkey rsa:1024 -keyout %s -out %s"""
 
@@ -21,6 +22,7 @@ class UpdateTest(TestCase):
 
     def test_UPDATE_NOT_FOUND_PAGE(self):
         url = reverse('passbook-update-pass', args=['999'])
+        logger.debug('resolved uri is %s', url)
         response = self.client.get(url)
         assert response.status_code == 404
 class PassTestCase(TestCase):
