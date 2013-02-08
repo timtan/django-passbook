@@ -326,7 +326,7 @@ class Barcode(models.Model):
 
 class Field(models.Model):
     _pass = models.ForeignKey(Pass, related_name='fields', null=True, blank=True)
-    key = models.CharField(max_length=255)
+    key   = models.CharField(max_length=255)
     label = models.CharField(max_length=255, blank=True, default="")
     value = models.TextField()
 
@@ -402,7 +402,7 @@ class Location(models.Model):
     latitude = models.FloatField()
     altitude = models.FloatField(null=True)
     relevant_text = models.CharField(max_length=255, blank=True, null=True)
-
+    key      = models.CharField(max_length=255, default='empty')
     def to_dict(self):
         location = {'longitude': self.longitude,
                     'latitude': self.latitude}
