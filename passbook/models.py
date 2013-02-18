@@ -112,7 +112,7 @@ class Pass(models.Model):
         d = {
             'formatVersion': self.format_version,
             'passTypeIdentifier': self.pass_signer.label,
-            'serialNumber': self.get_serial_number(),
+            'serialNumber': str(self.pk),
             'teamIdentifier': self.team_identifier,
             'description': self.description,
             'organizationName': self.organization_name,
