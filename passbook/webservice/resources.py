@@ -38,9 +38,9 @@ class DeviceResource(Resource):
         passUpdateSince = 'passesUpdatedSince'
         if passUpdateSince in request.GET:
             updated_since = dateutil.parser.parse(request.GET[passUpdateSince])
-            response_body['serialNumbers'] = [ str(p.pk) for p in device.passes.filter(updated_at__gte=updated_since)]
+            response_body['serialNumbers'] = [ p.serial_number for p in device.passes.filter(updated_at__gte=updated_since)]
         else:
-            response_body['serialNumbers'] = [ str(p.pk) for p in device.passes.all()]
+            response_body['serialNumbers'] = [ p.serial_number for  p in device.passes.all()]
         status = 200 if response_body['serialNumbers'] else 204
 
         logger.debug('response body: %s', response_body)

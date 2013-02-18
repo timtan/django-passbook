@@ -8,8 +8,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.sites.models import Site
 from .utils import write_tempfile, to_time_stamp
-from .signals import pass_update
-
+from . import signals
 
 IMAGE_PATH = os.path.join(settings.MEDIA_ROOT, 'passbook')
 IMAGE_TYPE = '.*\.(png|PNG)$'
@@ -39,6 +38,9 @@ class Pass(models.Model):
 
     # will be deprecate, pk is enough
     serial_number = models.CharField(max_length=255, blank=True, null=True)
+
+
+
     # identifier and serial number should be unique together.
     organization_name = models.CharField(max_length=255, default="", blank=True, null=True)
     team_identifier = models.CharField(max_length=255)
@@ -286,11 +288,15 @@ class Pass(models.Model):
         return s.read()
     def notify(self):
         logger.debug('enter notification')
+
+        ##Update Timing
         self.description = self.description
         self.save()
+
+        ## Notify all devices
         for device in self.device_set.all():
-            logger.debug('notify identifier(%s), token(%s)', self.identifier, device.push_token)
-            pass_update.send( sender=self, identifier=self.identifier, token=device.push_token)
+            logger.debug('notify signer(%s), token(%s)', self.pass_signer, device.push_token)
+            signals.pass_update.send( sender=self, signer=self.pass_signer, token=device.push_token)
 
     def __unicode__(self):
         return u'%s %s %s' % (self.identifier, self.type, self.serial_number if self.serial_number else str(self.pk))
@@ -309,7 +315,6 @@ class Barcode(models.Model):
     format = models.CharField('Barcode format', choices=FORMAT_CHOICES, max_length=50)
     encoding = models.CharField(max_length=50, default='iso-8859-1')
     alt_text = models.CharField(max_length=255, blank=True, null=True)
-
     def to_dict(self):
         barcode = {
             'message': self.message,

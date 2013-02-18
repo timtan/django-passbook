@@ -2,7 +2,12 @@ from .utils import write_tempfile
 from apns import APNs, PassbookPayload
 import logging
 logger = logging.getLogger('passbook.signal')
-class PassbookApnChannel(object):
+class ChannelBase(object):
+    def __init__(self, private_key, certficate):
+        pass
+    def notify(self, token):
+        pass
+class PassbookApnChannel(ChannelBase):
 
     __payload  = PassbookPayload()
 
@@ -19,24 +24,25 @@ class PassbookApnChannel(object):
         self.__apn.gateway_server.send_notification(token, PassbookApnChannel.__payload)
 
 
-class __Channels:
-    def __init__(self, signers):
+class ChannelsBase(object):
+    def notify(self, identifier,  signer):
+        pass
+
+class PassbookChannels(ChannelsBase):
+    def __init__(self, ChannelCls=PassbookApnChannel):
 
         self.channels = {}
-        for signer in signers:
-            self.channels[signer.label] = PassbookApnChannel(signer.private_key, signer.certificate)
+        self.ChannelCls = ChannelCls
 
-    def notify(self, identifier, token):
+    def notify(self,  signer, token):
+
+        if signer.label not in self.channels:
+            logger.info('the channel for the signer %s is created', signer)
+            self.channels[signer.label] = self.ChannelCls(signer.private_key, signer.certificate)
+
         try:
-            self.channels[identifier].notify(token)
+            self.channels[signer.label].notify(token)
             logger.debug('notifier fire notification to token(%s)', token)
         except KeyError as e:
             logger.error('identifier is not available in signer table. it is because pass label and identifier not the same')
 
-__channels = None
-def getChannels():
-    global __channels
-    if not __channels :
-        from . models import Signer
-        __channels = __Channels(Signer.objects.all())
-    return __channels

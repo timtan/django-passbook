@@ -3,10 +3,10 @@ from passbook.models import Pass, Field, Location, Barcode, Signer, Device
 
 
 class PassAdmin(admin.ModelAdmin):
-    list_display = ('identifier', 'serial_number', 'organization_name',
+    list_display = ('identifier', 'organization_name',
                     'team_identifier', 'description', 'barcode')
 
-    search_fields = ('identifier', 'serial_number', 'organization_name',
+    search_fields = ('identifier', 'organization_name',
                      'team_identifier', 'description', 'barcode__message')
 
 
