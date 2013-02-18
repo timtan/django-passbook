@@ -50,8 +50,8 @@ class PassTestCase(TestCase):
                                             private_key=self.key, wwdr_certificate=self.cert)
 
     def create_pass(self):
-        return Pass.objects.create(identifier='abc123',
-                                   serial_number='123abc',
+        return Pass.objects.create(
+
                                    organization_name='django-passbook',
                                    team_identifier='pass.foo.bar',
                                    description='desc',
@@ -108,8 +108,10 @@ class PassTestCase(TestCase):
 
 class WebServiceTest(TestCase):
     def setUp(self):
-        self._pass = Pass.objects.create(identifier='abc123',
-                                         serial_number='123abc',
+        self._signer = Signer.objects.create(certificate='abc', private_key='123',label='abc123',
+                                             wwdr_certificate='123')
+        self._pass = Pass.objects.create(
+
                                          organization_name='django-passbook',
                                          team_identifier='pass.foo.bar',
                                          description='desc',
@@ -117,13 +119,13 @@ class WebServiceTest(TestCase):
                                          barcode=Barcode.objects.create(message='1234', format='PKBarcodeFormatPDF417'),
                                          background_color='rgb(0, 0, 0)',
                                          type='coupon',
-                                         pass_signer=Signer.objects.create(certificate='abc', private_key='123',
-                                                                           wwdr_certificate='123'))
+                                         pass_signer=self._signer,
+                                                                        )
 
         self.url = reverse('passbook-webservice-device-post', kwargs={'version': 'v1',
                                                                       'device_library_id': 'abv123',
-                                                                      'pass_type_id': self._pass.identifier,
-                                                                      'serial_number': self._pass.serial_number})
+                                                                      'pass_type_id': self._signer.label,
+                                                                      'serial_number': self._pass.pk})
 
     def tearDown(self):
         self._pass.delete()

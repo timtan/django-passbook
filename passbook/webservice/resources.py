@@ -61,7 +61,7 @@ class DeviceResource(Resource):
 
     @method_decorator(is_authorized)
     def delete(self, request, **kwargs):
-        p = get_object_or_404(Pass, identifier=kwargs['pass_type_id'],
+        p = get_object_or_404(Pass, pass_signer__label=kwargs['pass_type_id'],
             pk=int(kwargs['serial_number']))
 
         device = get_object_or_404(Device, device_library_id=kwargs['device_library_id'])
