@@ -11,10 +11,15 @@ class UpdateView(DetailView):
     model        = Pass
     template_name = 'passbook/admin/notification_updated.html'
     context_object_name = 'pass'
+
     def get_object(self):
         object = super(UpdateView, self).get_object()
-        object.notify()
+        self.updated_tokens = list(object.notify())
         return object
+    def get_context_data(self, **kwargs):
+        context = super(UpdateView, self).get_context_data(**kwargs)
+        context['updated_tokens'] = self.updated_tokens
+        return context
 
 class PassView(View):
 

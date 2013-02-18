@@ -297,6 +297,7 @@ class Pass(models.Model):
         for device in self.device_set.all():
             logger.debug('notify signer(%s), token(%s)', self.pass_signer, device.push_token)
             signals.pass_update.send( sender=self, signer=self.pass_signer, token=device.push_token)
+            yield device.push_token
 
     def __unicode__(self):
         return u'%s %s %s' % (self.identifier, self.type, self.serial_number if self.serial_number else str(self.pk))
