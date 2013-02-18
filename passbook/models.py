@@ -400,7 +400,7 @@ class Field(models.Model):
         return u'key: %s, label: %s, value: %s field_type %s' % (self.key, self.label, self.value[:20], self.field_type)
 
     class Meta:
-        unique_together = ('_pass', 'key')  # Field keys need to be unique per pass
+        pass # unique_together = ('_pass', 'key')  # Field keys need to be unique per pass
 
 
 class Location(models.Model):
